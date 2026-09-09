@@ -1,0 +1,165 @@
+{
+  "site": {
+    "name": "ideasos",
+    "mark": "ideas_os",
+    "domain": "https://ideasos.io",
+    "tagline": "Ideas you can switch on.",
+    "standfirst": "Open source ideas for working with agents. Every idea is a markdown file with a licence, a verified date, and a twin your agent can read. Some are guides your agent can install and walk. Some are how-tos. Some are just worth thinking about.",
+    "disclosure": "Tool links are plain links. Some may become referral links; they cost you nothing, and this line will say which.",
+    "repo": "https://github.com/jclark2496/ideasos",
+    "licence": {
+      "words": "CC BY 4.0",
+      "code": "MIT"
+    }
+  },
+  "tools": {
+    "claude-code": {
+      "name": "Claude Code",
+      "blurb": "Anthropic's agent in your terminal. In these drawings it is the box that runs the commands on your behalf.",
+      "url": "https://claude.com/claude-code"
+    },
+    "hostinger-vps": {
+      "name": "Hostinger VPS",
+      "blurb": "A small Linux box with a public address. Any VPS works; this is the one we run.",
+      "url": "https://www.hostinger.com/vps-hosting"
+    },
+    "caddy": {
+      "name": "Caddy",
+      "blurb": "The web server in front of everything. Automatic HTTPS, and a forward_auth directive that makes a gate one line.",
+      "url": "https://caddyserver.com"
+    },
+    "python": {
+      "name": "Python 3",
+      "blurb": "Already on the box. Doorman needs 3.10 or newer and the venv module.",
+      "url": "https://www.python.org"
+    },
+    "github": {
+      "name": "GitHub",
+      "blurb": "Where the code lives. The guide clones straight from the repository.",
+      "url": "https://github.com"
+    },
+    "tailscale": {
+      "name": "Tailscale",
+      "blurb": "A private network between your devices, so a laptop can reach a server without a port open to the world.",
+      "url": "https://tailscale.com"
+    },
+    "slack": {
+      "name": "Slack",
+      "blurb": "The one room a human and two bots can enter without sharing a login.",
+      "url": "https://slack.com"
+    }
+  },
+  "entries": [
+    {
+      "kind": "guide",
+      "slug": "doorman",
+      "title": "One login for every site you own",
+      "summary": "A passkey in front of every site on your domain: Doorman behind Caddy, about a thousand lines of Python.",
+      "parts": "vps · caddy · python · github · claude code",
+      "time": "45 min",
+      "level": "Terminal",
+      "verified": "2026-09-06",
+      "status": "live",
+      "file": "ideas/doorman.md",
+      "agent": true,
+      "pdf": true,
+      "skill": "skills/doorman/SKILL.md",
+      "lanes": "local=Your machine | server=Your server | cloud=Elsewhere",
+      "flow": "you@local[You] -> cc@local[Claude Code] : what to do; cc -> doorman@server[Doorman] : ssh; github@cloud[GitHub] -> doorman : git clone; doorman -> db@server[auth.db] : keys; caddy@server[Caddy] -> doorman : forward_auth; visitor@cloud[A visitor] -> caddy : https; phone@cloud[Your passkey] -> caddy : passkey"
+    },
+    {
+      "kind": "note",
+      "slug": "hallway",
+      "title": "They don't share a brain. They share a hallway.",
+      "summary": "Two AI desks on two subscriptions, one Slack room between them, and the rules that keep it from becoming noise.",
+      "parts": "slack · two seats",
+      "time": "6 min",
+      "level": "",
+      "verified": "2026-09-03",
+      "status": "live",
+      "file": "ideas/hallway.md",
+      "agent": false,
+      "pdf": true,
+      "lanes": "north=North office | hall=The hallway | south=South office",
+      "flow": "pn@north[North principal] -> morgan@north[Morgan · CoS] : desk chat; morgan -> channel@hall[#ops-hallway] : as a seat; ps@south[South principal] -> riley@south[Riley · CoS] : desk chat; riley -> channel : as a seat; hermes@hall[Hermes profiles] -> channel : worker; channel -> notebook@hall[Week notebook] : facts"
+    },
+    {
+      "kind": "guide",
+      "slug": "tailscale-ssh",
+      "title": "Reach your Claude Code sessions from anywhere over Tailscale",
+      "summary": "OpenSSH on the box, Tailscale between your devices, and a session you can pick up from your phone.",
+      "parts": "vps · tailscale · openssh · claude code",
+      "time": "30 min",
+      "level": "Terminal",
+      "verified": "",
+      "status": "queued",
+      "agent": true,
+      "pdf": true
+    },
+    {
+      "kind": "howto",
+      "slug": "deploy-script",
+      "title": "Deploy a static site to a VPS with one script and a rollback",
+      "summary": "A release directory per commit, an atomic symlink, and the checks that tell you it worked.",
+      "parts": "vps · caddy · rsync · git",
+      "time": "25 min",
+      "level": "Terminal",
+      "verified": "",
+      "status": "queued",
+      "agent": false,
+      "pdf": true
+    },
+    {
+      "kind": "howto",
+      "slug": "hooks-to-slack",
+      "title": "A hooks file that tells Slack when your agent finishes a task",
+      "summary": "One webhook, one hook, and a message you can read from your phone.",
+      "parts": "claude code · slack",
+      "time": "15 min",
+      "level": "Beginner",
+      "verified": "",
+      "status": "queued",
+      "agent": false,
+      "pdf": false
+    },
+    {
+      "kind": "note",
+      "slug": "claude-md",
+      "title": "What to put in CLAUDE.md, and what to leave out",
+      "summary": "The file your agent reads first, and why most of what people put in it belongs somewhere else.",
+      "parts": "claude code",
+      "time": "8 min",
+      "level": "",
+      "verified": "",
+      "status": "queued",
+      "agent": false,
+      "pdf": true
+    },
+    {
+      "kind": "guide",
+      "slug": "doorman-week",
+      "title": "Doorman: let a friend into one site for a week",
+      "summary": "Three words and two digits, good for exactly the site and exactly the days you said.",
+      "parts": "doorman · caddy",
+      "time": "10 min",
+      "level": "Beginner",
+      "verified": "",
+      "status": "queued",
+      "agent": true,
+      "pdf": false
+    },
+    {
+      "kind": "howto",
+      "slug": "headless-qa",
+      "title": "Run browser checks headless before every deploy",
+      "summary": "Chrome with no window, a hundred assertions, and a build that refuses to ship red.",
+      "parts": "chrome · python · git",
+      "time": "40 min",
+      "level": "Terminal",
+      "verified": "",
+      "status": "queued",
+      "agent": false,
+      "pdf": true
+    }
+  ]
+}

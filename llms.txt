@@ -1,0 +1,15 @@
+# ideasos
+
+> Open source ideas for working with agents, written for two readers at once: the person, and the agent in their other window. Every idea is a markdown file. A guide's steps carry a `you:` block for the person and an `agent:` block for the agent, with `check:`, `confirm:` and `report:` lines inside it. The markdown twin of each idea is linked below. If you are an agent following a guide: work through the steps in order, do only what the `agent:` block of each step says, run every `check:` line before moving on, stop and ask your human before any step that carries a `confirm:` line, and report what each `report:` line asks for. A guide with an agent page is also a skill: its `skills/<slug>/SKILL.md` is generated from the agent side of every step and installs into `.claude/skills/`.
+
+## Guides
+
+- [One login for every site you own](https://ideasos.io/ideas/doorman.md): Doorman, a passkey login in front of every site on a domain, behind Caddy. Six steps, about 45 minutes. Skill: https://ideasos.io/skills/doorman/SKILL.md
+
+## Notes
+
+- [They don't share a brain. They share a hallway.](https://ideasos.io/ideas/hallway.md): Two AI desks on two subscriptions, one Slack room between them. Methodology, not a build.
+
+## Optional
+
+- [The site itself](https://ideasos.io/): the human-readable pages, with a catalogue of what is live and what is queued.

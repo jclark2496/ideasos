@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#ebf3f1" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0b1a19" media="(prefers-color-scheme: dark)">
+  <meta name="description" content="ideasos: open source ideas for working with agents. Every idea is a markdown file with a licence, a verified date, and a twin your agent can read. Guides install as skills; how-tos hand over; notes are read.">
+  <link rel="canonical" href="https://ideasos.io/">
+  <link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml">
+  <title>ideasos — ideas you can switch on</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="src/app.css?v=1">
+</head>
+<body>
+  <header class="masthead">
+    <a class="mark" href="#/" aria-label="ideasos, home">ideas_os<span class="cursor" aria-hidden="true"></span></a>
+    <nav class="menu" aria-label="Sections">
+      <a href="#/" data-nav="home">Ideas</a>
+      <a href="#/agents" data-nav="agents">For agents</a>
+      <a href="#/about" data-nav="about">About</a>
+    </nav>
+    <div class="theme" role="group" aria-label="Theme">
+      <button type="button" data-theme="light" aria-pressed="false" title="Light">Light</button>
+      <button type="button" data-theme="dark" aria-pressed="false" title="Dark">Dark</button>
+      <button type="button" data-theme="system" aria-pressed="true" title="Follow the system">Auto</button>
+    </div>
+  </header>
+
+  <main id="view" class="view">
+    <p class="loading">Loading the ideas…</p>
+  </main>
+
+  <footer class="status" id="status" aria-label="Status">
+    <span class="s-mark">ideas_os</span>
+    <span id="s-counts">…</span>
+    <span class="right" id="s-theme">auto</span>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <script src="src/app.js?v=1"></script>
+</body>
+</html>
