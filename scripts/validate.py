@@ -69,7 +69,7 @@ for token in ("--ground", "--panel", "--panel-2", "--ink", "--ink-2", "--muted",
 
 # ---- the app ----
 need(js, ["function parseGuide", "function agentOf", "function activate", "IntersectionObserver", 'class="index"', "data-jump", "const installCmd", "const handoffText", "function stepText",
-          "function run(", "function setTheme", "localStorage", "window.App", ".claude/skills/", 'data-verb="install"', 'data-verb="send"', "renderAgents", "renderAbout"], "app.js")
+          "function run(", "function setTheme", "localStorage", 'class="name"', "window.App", ".claude/skills/", 'data-verb="install"', 'data-verb="send"', "renderAgents", "renderAbout"], "app.js")
 if "<table" in js:
     raise SystemExit("the catalogue is a grid of cards, not a table")
 if "switchOn" in js or "data-power" in js or ".power" in css:

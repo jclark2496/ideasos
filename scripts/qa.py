@@ -119,6 +119,8 @@ def home(p, vp):
     p.ev("App.search(''); 1")
     check(f"{vp} the grid filters and searches", notes == 2 and guides == 3 and found == 2 and p.ev("App.state().shown") == 8 and p.ev("document.querySelectorAll('.filters button').length") == 4, f"{notes} {guides} {found}")
     check(f"{vp} no card carries a power button", p.ev("document.querySelectorAll('.power, .glyph').length") == 0)
+    check(f"{vp} every card leads with the name you type", p.ev("[...document.querySelectorAll('.card')].every(c => c.querySelector('.c-top .name').textContent === c.dataset.slug)")
+          and p.ev("document.querySelector('.card[data-slug=doorman] .c-top').textContent").startswith("doorman"))
     # the prompt understands the verbs
     ok = p.ev("App.run('install doorman')")
     st = p.ev("App.state()")
@@ -142,6 +144,7 @@ def post(p, vp):
     check(f"{vp} the index sits beside the steps on a wide screen and steps aside on a narrow one", p.ev("getComputedStyle(document.querySelector('.index')).display") == ("grid" if wide else "none")
           and (not wide or p.ev("document.querySelector('.index').getBoundingClientRect().left > document.querySelector('.steps').getBoundingClientRect().right")))
     check(f"{vp} the reading column uses the width", p.ev("document.querySelector('.step').getBoundingClientRect().width") >= (700 if wide else 250))
+    check(f"{vp} the post head leads with the name", p.ev("document.querySelector('.p-top .name').textContent") == "doorman")
     check(f"{vp} the head carries the verbs and the install line", p.ev("document.querySelector('.actions .btn.primary').textContent") == "Install" and "curl" in p.ev("document.getElementById('install-cmd').textContent")
           and "6 steps, 10 checks, 2 ask first" in p.ev("document.querySelector('.install .then').textContent") and p.ev("App.skill().startsWith('---\\nname: doorman')")
           and p.ev("document.querySelectorAll('.step .agent .ask').length") == 2 and p.ev("document.querySelectorAll('.step .agent .checks li').length") == 10)

@@ -206,7 +206,7 @@
   function card(e) {
     const isLive = e.status === "live", href = `#/ideas/${e.slug}`;
     return `<li class="card${isLive ? "" : " queued"}" data-slug="${esc(e.slug)}" data-kind="${esc(e.kind)}">
-      <p class="c-top"><span class="kind">${KINDS[e.kind]}</span>${e.time ? `<span>${esc(e.time)}</span>` : ""}${e.level ? `<span>${esc(e.level)}</span>` : ""}</p>
+      <p class="c-top"><span class="name">${esc(e.slug)}</span><span class="kind">${KINDS[e.kind]}</span>${e.time ? `<span>${esc(e.time)}</span>` : ""}${e.level ? `<span>${esc(e.level)}</span>` : ""}</p>
       ${isLive ? `<a class="c-title" href="${href}">${esc(e.title)}</a>` : `<span class="c-title">${esc(e.title)}</span>`}
       <p class="c-sum">${esc(e.summary)}</p>
       <p class="c-foot">${isLive ? `${verbButtons(e)}<a class="btn" href="${href}">Open</a><span class="ver">${version(e.verified)}</span>` : '<span class="q">in the queue</span>'}</p>
@@ -293,7 +293,7 @@
   function headHtml(e, m, extra) {
     const parts = (m.parts || "").split(",").map(s => s.trim()).filter(Boolean);
     return `<header class="p-head">
-      <p class="p-top"><span class="kind">${KINDS[e.kind]}</span>${m.time ? `<span>${esc(m.time)}</span>` : ""}${m.level ? `<span>${esc(m.level)}</span>` : ""}<span class="ver">${version(e.verified)}</span>${m.verified ? `<span>${esc(m.verified.replace(/^\d{4}-\d{2}-\d{2}\s*·?\s*/, ""))}</span>` : ""}</p>
+      <p class="p-top"><span class="name">${esc(e.slug)}</span><span class="kind">${KINDS[e.kind]}</span>${m.time ? `<span>${esc(m.time)}</span>` : ""}${m.level ? `<span>${esc(m.level)}</span>` : ""}<span class="ver">${version(e.verified)}</span>${m.verified ? `<span>${esc(m.verified.replace(/^\d{4}-\d{2}-\d{2}\s*·?\s*/, ""))}</span>` : ""}</p>
       <h1>${inline(m.title)}</h1>
       <p class="stand">${inline(m.summary)}</p>
       ${parts.length ? `<div class="parts"><h2>Requires</h2><ul class="tools">${parts.map(toolCard).join("")}</ul><p class="disclosure">${esc(index.site.disclosure)}</p></div>` : ""}

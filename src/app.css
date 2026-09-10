@@ -74,6 +74,9 @@ h1, h2, h3 { text-wrap: balance; }
 .card { display: grid; grid-template-rows: auto auto 1fr auto; gap: 10px; padding: 16px 18px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; min-width: 0; transition: border-color .15s; }
 .card:hover { border-color: var(--line-2); }
 .c-top { display: flex; align-items: center; gap: 10px; font: 400 11.5px/1.5 var(--mono); color: var(--muted); }
+.c-top .name, .p-top .name { font: 600 13px/1 var(--mono); letter-spacing: -.01em; color: var(--ink); }
+.p-top .name { font-size: 14px; }
+.card.queued .c-top .name { color: var(--muted); }
 .kind { padding: 2px 7px; border: 1px solid var(--line-2); border-radius: 4px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; font-size: 10px; color: var(--ink); }
 .c-title { font: 600 19px/1.22 var(--sans); letter-spacing: -.015em; text-decoration: none; }
 a.c-title:hover, a.c-title:focus-visible { text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 3px; outline: none; }
