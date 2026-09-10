@@ -360,13 +360,28 @@
     </article>`;
     decorate();
   }
+  // a plain page's sections, listed beside it the way a guide's steps are
+  function sectioned(copy) {
+    let n = 0; const items = [];
+    const html = copy.replace(/<h2>(.*?)<\/h2>/g, (m, title) => { n++; items.push({ n, title }); return `<h2 id="sec-${n}" data-sec="${n}">${title}</h2>`; });
+    const index = `<aside class="index" aria-label="On this page"><h2>On this page</h2><ol>${items.map(i => `<li data-step="${i.n}"><button type="button" data-jump-sec="${i.n}"><span class="num">${String(i.n).padStart(2, "0")}</span><span>${i.title}</span></button></li>`).join("")}</ol><p class="now">${items.length} sections</p></aside>`;
+    return `<div class="body"><div class="body-copy">${html}</div>${index}</div>`;
+  }
+  function watchSections() {
+    if (observer) observer.disconnect();
+    const heads = [...view.querySelectorAll(".body-copy h2[data-sec]")]; if (!heads.length) return;
+    const light = n => { for (const li of view.querySelectorAll(".index [data-step]")) { const s = +li.dataset.step; li.classList.toggle("is-active", s === n); li.classList.toggle("is-done", s < n); } };
+    observer = new IntersectionObserver(entries => { const seen = entries.filter(e => e.isIntersecting).map(e => +e.target.dataset.sec); if (seen.length) light(Math.min(...seen)); }, { rootMargin: "-10% 0px -70% 0px", threshold: 0 });
+    heads.forEach(h => observer.observe(h));
+    light(1);
+  }
   function renderAgents() {
     current = null; if (observer) observer.disconnect();
     const live = index.entries.filter(e => e.status === "live"), first = live.find(e => e.agent) || live[0], skilled = live.filter(e => e.skill);
     view.innerHTML = `<section class="plain">
       <p class="eyebrow">For agents</p>
       <h1>Every idea has a twin your agent can read.</h1>
-      <div class="body-copy">
+      ${sectioned(`
         <p>The pages here are built in the browser from plain markdown files. Those files are the agent's edition. A guide's steps carry an <code>agent:</code> block with <code>check:</code> lines and the <code>confirm:</code> lines that mean "ask your human first"; a how-to or a note is just the text. Point an agent at a file and it can follow along without you reading anything aloud.</p>
         <p>There is an index at <a href="${esc(absUrl("llms.txt"))}">llms.txt</a> that lists every file with one line about each, for agents that arrive at the site itself.</p>
         <h2>The twins</h2>
@@ -385,9 +400,9 @@
           <li>Stop before any step marked confirm. Those spend money, touch production, or need a human's finger.</li>
           <li>Report what the step asks for, in one line if possible.</li>
         </ul>
-      </div>
+      `)}
     </section>`;
-    decorate();
+    decorate(); watchSections();
   }
   function renderAbout() {
     current = null; if (observer) observer.disconnect();
@@ -395,8 +410,10 @@
     view.innerHTML = `<section class="plain">
       <p class="eyebrow">About</p>
       <h1>Open source ideas, and one verb each.</h1>
-      <div class="body-copy">
+      ${sectioned(`
+        <h2>Open source</h2>
         <p>ideasos is a small publication about working with agents. Every idea is one markdown file, published under a licence that lets you take it: the words are ${esc(lic.words)}, the code is ${esc(lic.code)}, and every page links its file, its source and a fork button. Nothing to sign up for.</p>
+        <h2>Two readers</h2>
         <p>Every idea is written for two readers: you, and the agent in your other window. Your page is set in your theme. The agent's page, where there is one, is set in the other theme, with a button that copies it along with where you are.</p>
         <h2>Three kinds, three verbs</h2>
         <ul class="verbs">
@@ -404,10 +421,13 @@
           <li><span class="kind">How-to</span><b>Send to your agent</b><p>Steps or an explanation without an agent page. One line hands the file to your agent as context.</p></li>
           <li><span class="kind">Note</span><b>Open</b><p>A methodology, an opinion, something worth thinking about. Just read it.</p></li>
         </ul>
+        <h2>Switched on</h2>
         <p>An idea you pick up is switched on: the glyph on its card lights, this browser remembers it, and the status bar counts it. That is all it means. It is a bookmark with a better name.</p>
+        <h2>Verified with</h2>
         <p>When a tool is recommended it is because it is in use here. Every idea carries the date and the versions it was last verified with, because ideas about this rot in months, and a site that admits its age is the one worth trusting.</p>
-      </div>
+      `)}
     </section>`;
+    watchSections();
   }
 
   // ---------- routing ----------
@@ -442,10 +462,11 @@
   }
 
   document.addEventListener("click", e => {
-    const t = e.target.closest("[data-filter], [data-side], [data-copy], [data-verb], [data-power], [data-act], [data-jump], .theme [data-theme]");
+    const t = e.target.closest("[data-filter], [data-side], [data-copy], [data-verb], [data-power], [data-act], [data-jump], [data-jump-sec], .theme [data-theme]");
     if (!t) return;
     if (t.dataset.filter) { state.filter = t.dataset.filter; renderList(); }
     else if (t.dataset.jump) { const s = $(`step-${t.dataset.jump}`); if (s) { s.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); activate(+t.dataset.jump); } }
+    else if (t.dataset.jumpSec) { const s = $(`sec-${t.dataset.jumpSec}`); if (s) s.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); }
     else if (t.dataset.side) setSide(t.dataset.side);
     else if (t.dataset.theme) setTheme(t.dataset.theme);
     else if (t.dataset.power) { const on = !isOn(t.dataset.power); switchOn(t.dataset.power, on); say(on ? "Switched on. This browser remembers it." : "Switched off."); }

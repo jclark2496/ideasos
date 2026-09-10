@@ -200,9 +200,11 @@ html[data-side="agent"] .intro { display: none; }
 
 /* ---------- plain pages ---------- */
 .plain { padding: clamp(28px, 4vw, 52px) 0 40px; display: grid; gap: 14px; }
-.plain h1 { font: 600 clamp(30px, 3.8vw, 46px)/1.06 var(--sans); letter-spacing: -.03em; max-width: 20ch; }
-.plain .body-copy { max-width: 66ch; display: grid; gap: 1em; color: var(--ink-2); }
-.plain .body-copy h2 { margin-top: .6em; font: 600 24px/1.2 var(--sans); letter-spacing: -.015em; color: var(--ink); }
+.plain h1 { font: 600 clamp(30px, 3.8vw, 46px)/1.06 var(--sans); letter-spacing: -.03em; max-width: 24ch; }
+.plain .body-copy { max-width: 76ch; display: grid; gap: 1em; color: var(--ink-2); }
+.plain .body { margin-top: 8px; }
+.plain .body-copy h2 { margin-top: .6em; font: 600 24px/1.2 var(--sans); letter-spacing: -.015em; color: var(--ink); scroll-margin-top: 20px; }
+.plain .body-copy h2:first-child { margin-top: 0; }
 .plain .body-copy ul { margin: 0 0 0 1.2em; }
 .plain .body-copy li { margin: .3em 0; }
 .plain .body-copy pre.code { white-space: pre-wrap; }

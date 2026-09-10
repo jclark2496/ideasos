@@ -177,8 +177,11 @@ def post(p, vp):
     p.go("#/agents")
     check(f"{vp} the for-agents page lists the twins and the skill", p.ev("document.querySelectorAll('.twins li').length") == 3 and "llms.txt" in p.ev("document.getElementById('view').textContent")
           and "start with step 1" in p.ev("document.getElementById('handoff-example').textContent") and p.ev("document.querySelector('.menu a[aria-current=\"page\"]').dataset.nav") == "agents")
+    check(f"{vp} a plain page uses the width beside an index of its sections", p.ev("document.querySelectorAll('.plain .index [data-step]').length") == 4
+          and p.ev("document.querySelector('.plain .body-copy').getBoundingClientRect().width") >= (700 if wide else 250) and p.ev("document.querySelectorAll('.body-copy h2[id^=sec-]').length") == 4)
     p.go("#/about")
-    check(f"{vp} the about page names the three verbs", p.ev("document.querySelectorAll('.verbs li').length") == 3 and "Install" in p.ev("document.querySelector('.verbs').textContent"))
+    check(f"{vp} the about page names the three verbs", p.ev("document.querySelectorAll('.verbs li').length") == 3 and "Install" in p.ev("document.querySelector('.verbs').textContent")
+          and p.ev("document.querySelectorAll('.plain .index [data-step]').length") == 5)
     p.go("#/ideas/nope")
     check(f"{vp} a missing idea says so", "isn't in the catalogue" in p.ev("document.getElementById('view').textContent"))
     check(f"{vp} post no overflow", not p.overflow())
