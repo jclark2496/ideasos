@@ -56,9 +56,11 @@ js_v = re.search(r'src/app\.js\?v=(\d+)', html).group(1)
 # ---- the stylesheet: both themes drawn as tokens, in the three-state pattern ----
 need(css, [":root {", "@media (prefers-color-scheme: dark)", ':root:not([data-theme="light"])', ':root[data-theme="dark"]', "--ground:", "--panel:", "--ink:", "--muted:", "--on:", "--agent-bg:", "--agent-on:",
            ".cards { list-style: none; display: grid; grid-template-columns: repeat(3,", 'html[data-side="you"] .step .agent { display: none; }', 'html[data-side="agent"] .step .you { display: none; }',
-           ".index { position: sticky", ".install {", ".status {", "@media print", "prefers-reduced-motion", "overflow-x: clip"], "app.css")
-if ".rail" in css or "parseFlow" in js:
-    raise SystemExit("the wiring drawing was removed on 2026-09-09; a guide carries a step index instead")
+           ".install {", ".status {", "@media print", "prefers-reduced-motion", "overflow-x: clip"], "app.css")
+if ".rail" in css or "parseFlow" in js or ".index" in css or 'class="index"' in js or "data-jump" in js:
+    raise SystemExit("nothing sits beside a post: the wiring drawing and then the step index were both removed on 2026-09-09; a post is one column as wide as its head")
+if ".post { padding: clamp(28px, 4vw, 52px) 0 40px; max-width: 960px" not in css:
+    raise SystemExit("a post is one 960px column")
 root_block = re.search(r":root \{(.*?)\n\}", css, re.S).group(1)
 for token in ("--ground", "--panel", "--panel-2", "--ink", "--ink-2", "--muted", "--line", "--line-2", "--on", "--on-text", "--agent-bg", "--agent-ink", "--agent-muted", "--agent-line", "--agent-panel", "--agent-on"):
     if f"{token}:" not in root_block:
@@ -68,7 +70,7 @@ for token in ("--ground", "--panel", "--panel-2", "--ink", "--ink-2", "--muted",
             raise SystemExit(f"app.css's dark theme does not redefine {token}")
 
 # ---- the app ----
-need(js, ["function parseGuide", "function agentOf", "function activate", "IntersectionObserver", 'class="index"', "data-jump", "const installCmd", "const handoffText", "function stepText",
+need(js, ["function parseGuide", "function agentOf", "function activate", "IntersectionObserver", "const installCmd", "const handoffText", "function stepText",
           "function run(", "function setTheme", "localStorage", 'class="name"', "window.App", ".claude/skills/", 'data-verb="install"', 'data-verb="send"', "renderAgents", "renderAbout"], "app.js")
 if "<table" in js:
     raise SystemExit("the catalogue is a grid of cards, not a table")

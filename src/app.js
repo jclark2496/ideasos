@@ -1,8 +1,8 @@
 /* ideasos — the launcher. Every idea is a markdown file in ideas/; index.json is the catalogue. A guide's steps carry
    `you:` (your page) and `agent:` (your agent's page, with check:, confirm: and report: lines pulled out); a guide with
    an agent page is also a skill, built into skills/<slug>/SKILL.md. Each kind has one verb: a guide installs, a how-to
-   is sent to your agent, a note is opened. The prompt on the home is the search and understands the verbs. Beside a
-   guide's steps sits an index of them that lights the one you are reading. window.App is the interface the tests use. */
+   is sent to your agent, a note is opened. The prompt on the home is the search and understands the verbs. A post is one
+   column, as wide as its head; nothing sits beside it. window.App is the interface the tests use. */
 (() => {
   "use strict";
   const $ = id => document.getElementById(id);
@@ -113,13 +113,10 @@
     return { meta, intro, steps };
   }
 
-  // the reader reached step n: the step and its line in the index light up
+  // the reader reached step n: its number lights
   function activate(n) {
     state.active = n;
     for (const stp of view.querySelectorAll(".step")) stp.classList.toggle("is-active", +stp.dataset.step === n);
-    for (const li of view.querySelectorAll(".index [data-step]")) { const s = +li.dataset.step; li.classList.toggle("is-active", s === n); li.classList.toggle("is-done", s < n); }
-    const now = view.querySelector(".index .now");
-    if (now && current && current.steps) now.textContent = `step ${n} of ${current.steps.length}`;
   }
   function watch() {
     if (observer) observer.disconnect();
@@ -323,11 +320,6 @@
             ${hasAgent ? agentHtml(s, g.steps.length) : ""}
           </section>`).join("")}
         </div>
-        <aside class="index" aria-label="The steps">
-          <h2>Steps</h2>
-          <ol>${g.steps.map(s => `<li data-step="${s.n}"><button type="button" data-jump="${s.n}"><span class="num">${String(s.n).padStart(2, "0")}</span><span>${inline(s.title)}</span></button></li>`).join("")}</ol>
-          <p class="now">${g.steps.length} steps</p>
-        </aside>
       </div>
       ${footHtml(e, m)}
     </article>`;
@@ -338,25 +330,10 @@
     current = { kind: e.kind, slug: e.slug, file: e.file, meta: m, steps: [], skill: "", install: "" };
     view.innerHTML = `<article class="post">
       ${headHtml(e, m, "")}
-      <div class="body single"><div class="note-body">${md(body)}</div></div>
+      <div class="body"><div class="note-body">${md(body)}</div></div>
       ${footHtml(e, m)}
     </article>`;
     decorate();
-  }
-  // a plain page's sections, listed beside it the way a guide's steps are
-  function sectioned(copy) {
-    let n = 0; const items = [];
-    const html = copy.replace(/<h2>(.*?)<\/h2>/g, (m, title) => { n++; items.push({ n, title }); return `<h2 id="sec-${n}" data-sec="${n}">${title}</h2>`; });
-    const index = `<aside class="index" aria-label="On this page"><h2>On this page</h2><ol>${items.map(i => `<li data-step="${i.n}"><button type="button" data-jump-sec="${i.n}"><span class="num">${String(i.n).padStart(2, "0")}</span><span>${i.title}</span></button></li>`).join("")}</ol><p class="now">${items.length} sections</p></aside>`;
-    return `<div class="body"><div class="body-copy">${html}</div>${index}</div>`;
-  }
-  function watchSections() {
-    if (observer) observer.disconnect();
-    const heads = [...view.querySelectorAll(".body-copy h2[data-sec]")]; if (!heads.length) return;
-    const light = n => { for (const li of view.querySelectorAll(".index [data-step]")) { const s = +li.dataset.step; li.classList.toggle("is-active", s === n); li.classList.toggle("is-done", s < n); } };
-    observer = new IntersectionObserver(entries => { const seen = entries.filter(e => e.isIntersecting).map(e => +e.target.dataset.sec); if (seen.length) light(Math.min(...seen)); }, { rootMargin: "-10% 0px -70% 0px", threshold: 0 });
-    heads.forEach(h => observer.observe(h));
-    light(1);
   }
   function renderAgents() {
     current = null; if (observer) observer.disconnect();
@@ -364,7 +341,7 @@
     view.innerHTML = `<section class="plain">
       <p class="eyebrow">For agents</p>
       <h1>Every idea has a twin your agent can read.</h1>
-      ${sectioned(`
+      <div class="body-copy">
         <p>The pages here are built in the browser from plain markdown files. Those files are the agent's edition. A guide's steps carry an <code>agent:</code> block with <code>check:</code> lines and the <code>confirm:</code> lines that mean "ask your human first"; a how-to or a note is just the text. Point an agent at a file and it can follow along without you reading anything aloud.</p>
         <p>There is an index at <a href="${esc(absUrl("llms.txt"))}">llms.txt</a> that lists every file with one line about each, for agents that arrive at the site itself.</p>
         <h2>The twins</h2>
@@ -383,9 +360,9 @@
           <li>Stop before any step marked confirm. Those spend money, touch production, or need a human's finger.</li>
           <li>Report what the step asks for, in one line if possible.</li>
         </ul>
-      `)}
+      </div>
     </section>`;
-    decorate(); watchSections();
+    decorate();
   }
   function renderAbout() {
     current = null; if (observer) observer.disconnect();
@@ -393,7 +370,7 @@
     view.innerHTML = `<section class="plain">
       <p class="eyebrow">About</p>
       <h1>Open source ideas, and one verb each.</h1>
-      ${sectioned(`
+      <div class="body-copy">
         <h2>Open source</h2>
         <p>ideasos is a small publication about working with agents. Every idea is one markdown file, published under a licence that lets you take it: the words are ${esc(lic.words)}, the code is ${esc(lic.code)}, and every page links its file, its source and a fork button. Nothing to sign up for.</p>
         <h2>Two readers</h2>
@@ -406,9 +383,8 @@
         </ul>
         <h2>Verified with</h2>
         <p>When a tool is recommended it is because it is in use here. Every idea carries the date and the versions it was last verified with, because ideas about this rot in months, and a site that admits its age is the one worth trusting.</p>
-      `)}
+      </div>
     </section>`;
-    watchSections();
   }
 
   // ---------- routing ----------
@@ -443,11 +419,9 @@
   }
 
   document.addEventListener("click", e => {
-    const t = e.target.closest("[data-filter], [data-side], [data-copy], [data-verb], [data-act], [data-jump], [data-jump-sec], .theme [data-theme]");
+    const t = e.target.closest("[data-filter], [data-side], [data-copy], [data-verb], [data-act], .theme [data-theme]");
     if (!t) return;
     if (t.dataset.filter) { state.filter = t.dataset.filter; renderList(); }
-    else if (t.dataset.jump) { const s = $(`step-${t.dataset.jump}`); if (s) { s.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); activate(+t.dataset.jump); } }
-    else if (t.dataset.jumpSec) { const s = $(`sec-${t.dataset.jumpSec}`); if (s) s.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); }
     else if (t.dataset.side) setSide(t.dataset.side);
     else if (t.dataset.theme) setTheme(t.dataset.theme);
     else if (t.dataset.copy === "code") copy(t.parentElement.querySelector("code").textContent, "Copied");
@@ -474,7 +448,7 @@
   window.App = {
     state: () => ({ ready, loaded, route: location.hash, kind: current ? current.kind : null, slug: current ? current.slug : null, steps: current ? current.steps.length : 0, active: state.active, side: root.dataset.side, theme: themeNow(),
       entries: index ? index.entries.length : 0, live: index ? index.entries.filter(e => e.status === "live").length : 0, shown: view.querySelectorAll(".card").length, filter: state.filter, q: state.q,
-      agents: view.querySelectorAll(".step .agent:not(.none)").length, indexed: view.querySelectorAll(".index [data-step]").length, activeIndex: (view.querySelector(".index .is-active") || { dataset: {} }).dataset.step || null,
+      agents: view.querySelectorAll(".step .agent:not(.none)").length,
       install: current ? current.install : "", lastCopy }),
     go: h => { if (location.hash === h) route(); else location.hash = h; },
     run, activate, side: setSide, theme: setTheme, stepText, handoff: slug => { const e = entryOf(slug || (current && current.slug)); return e ? handoffText(e) : ""; }, skill: () => current ? current.skill : "",

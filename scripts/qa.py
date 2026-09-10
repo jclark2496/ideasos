@@ -138,12 +138,11 @@ def post(p, vp):
     p.load("/")
     p.go("#/ideas/doorman")
     s = p.ev("App.state()")
-    check(f"{vp} the guide renders with its agent pages and its index", s["kind"] == "guide" and s["steps"] == 6 and s["agents"] == 6 and s["indexed"] == 6 and s["side"] == "both"
-          and p.ev("document.querySelectorAll('.rail, .wires').length") == 0, str({k: s[k] for k in ('kind', 'steps', 'agents', 'indexed')}))
+    check(f"{vp} the guide renders with its agent pages, one column", s["kind"] == "guide" and s["steps"] == 6 and s["agents"] == 6 and s["side"] == "both"
+          and p.ev("document.querySelectorAll('.rail, .wires, .index, aside').length") == 0, str({k: s[k] for k in ('kind', 'steps', 'agents')}))
     wide = int(vp.split("x")[0]) > 960
-    check(f"{vp} the index sits beside the steps on a wide screen and steps aside on a narrow one", p.ev("getComputedStyle(document.querySelector('.index')).display") == ("grid" if wide else "none")
-          and (not wide or p.ev("document.querySelector('.index').getBoundingClientRect().left > document.querySelector('.steps').getBoundingClientRect().right")))
-    check(f"{vp} the reading column uses the width", p.ev("document.querySelector('.step').getBoundingClientRect().width") >= (700 if wide else 250))
+    check(f"{vp} the post is one column as wide as its head", p.ev("Math.abs(document.querySelector('.step').getBoundingClientRect().width - document.querySelector('.p-head').getBoundingClientRect().width) < 2")
+          and p.ev("document.querySelector('.step').getBoundingClientRect().width") >= (900 if wide else 250), str(p.ev("document.querySelector('.step').getBoundingClientRect().width")))
     check(f"{vp} the post head leads with the name", p.ev("document.querySelector('.p-top .name').textContent") == "doorman")
     check(f"{vp} the head carries the verbs and the install line", p.ev("document.querySelector('.actions .btn.primary').textContent") == "Install" and "curl" in p.ev("document.getElementById('install-cmd').textContent")
           and "6 steps, 10 checks, 2 ask first" in p.ev("document.querySelector('.install .then').textContent") and p.ev("App.skill().startsWith('---\\nname: doorman')")
@@ -157,28 +156,22 @@ def post(p, vp):
     ho = p.ev("App.handoff('doorman')")
     check(f"{vp} the whole guide hands over in one sentence", "ideas/doorman.md" in ho and '"agent:"' in ho and "start with step 1" in ho)
     p.ev("App.activate(4); 1")
-    check(f"{vp} the index lights the step you are reading", p.ev("App.state().activeIndex") == "4" and p.ev("document.querySelectorAll('.index .is-done').length") == 3
-          and p.ev("document.querySelector('.step.is-active').dataset.step") == "4" and "step 4 of 6" in p.ev("document.querySelector('.index .now').textContent"))
-    if wide:
-        p.ev("document.querySelector('.index [data-jump=\"6\"]').click(); 1")
-        p.wait(lambda: p.ev("App.state().activeIndex") == "6", timeout=4, what="index jump")
-        check(f"{vp} the index jumps to a step", p.ev("App.state().activeIndex") == "6" and p.ev("location.hash") == "#/ideas/doorman")
+    check(f"{vp} the step being read is marked", p.ev("document.querySelector('.step.is-active').dataset.step") == "4" and p.ev("App.state().active") == 4)
     check(f"{vp} the agent panel is the other theme", p.ev("getComputedStyle(document.querySelector('.step .agent')).backgroundColor") != p.ev("getComputedStyle(document.body).backgroundColor")
           and p.ev("getComputedStyle(document.querySelector('.step .agent p')).color") == p.ev("getComputedStyle(document.querySelector('.step .agent')).color"))
     check(f"{vp} every command has a copy button", p.ev("document.querySelectorAll('pre.code .copy').length") >= 8)
     check(f"{vp} the foot carries the open-source line", "CC BY 4.0" in p.ev("document.querySelector('.p-foot').textContent") and p.ev("document.querySelector('.p-foot a[href$=\"doorman.md\"]') !== null") and "fork this idea" in p.ev("document.querySelector('.p-foot').textContent"))
     p.go("#/ideas/hallway")
     s = p.ev("App.state()")
-    check(f"{vp} a note is just the text, one column", s["kind"] == "note" and s["steps"] == 0 and s["agents"] == 0 and s["indexed"] == 0 and p.ev("document.querySelectorAll('.actions .btn.primary').length") == 0 and p.ev("document.querySelectorAll('.controls').length") == 0
-          and p.ev("getComputedStyle(document.querySelector('.body')).gridTemplateColumns.split(' ').length") == 1, str(s["kind"]))
+    check(f"{vp} a note is just the text, one column", s["kind"] == "note" and s["steps"] == 0 and s["agents"] == 0 and p.ev("document.querySelectorAll('.actions .btn.primary').length") == 0 and p.ev("document.querySelectorAll('.controls').length") == 0
+          and p.ev("Math.abs(document.querySelector('.note-body').getBoundingClientRect().width - document.querySelector('.p-head').getBoundingClientRect().width) < 2"), str(s["kind"]))
     p.go("#/agents")
     check(f"{vp} the for-agents page lists the twins and the skill", p.ev("document.querySelectorAll('.twins li').length") == 4 and "llms.txt" in p.ev("document.getElementById('view').textContent")
           and "start with step 1" in p.ev("document.getElementById('handoff-example').textContent") and p.ev("document.querySelector('.menu a[aria-current=\"page\"]').dataset.nav") == "agents")
-    check(f"{vp} a plain page uses the width beside an index of its sections", p.ev("document.querySelectorAll('.plain .index [data-step]').length") == 4
-          and p.ev("document.querySelector('.plain .body-copy').getBoundingClientRect().width") >= (700 if wide else 250) and p.ev("document.querySelectorAll('.body-copy h2[id^=sec-]').length") == 4)
+    check(f"{vp} a plain page is one column as wide as the post", p.ev("document.querySelectorAll('.plain .index, .plain aside').length") == 0
+          and p.ev("document.querySelector('.plain .body-copy').getBoundingClientRect().width") >= (900 if wide else 250))
     p.go("#/about")
-    check(f"{vp} the about page names the three verbs", p.ev("document.querySelectorAll('.verbs li').length") == 3 and "Install" in p.ev("document.querySelector('.verbs').textContent")
-          and p.ev("document.querySelectorAll('.plain .index [data-step]').length") == 4)
+    check(f"{vp} the about page names the three verbs", p.ev("document.querySelectorAll('.verbs li').length") == 3 and "Install" in p.ev("document.querySelector('.verbs').textContent"))
     p.go("#/ideas/nope")
     check(f"{vp} a missing idea says so", "isn't in the catalogue" in p.ev("document.getElementById('view').textContent"))
     check(f"{vp} post no overflow", not p.overflow())

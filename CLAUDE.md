@@ -6,7 +6,7 @@ Open source ideas for working with agents, at ideasos.io. Static: HTML + CSS + v
 
 - `index.html` shell → `src/app.js` renders everything from `index.json` (the catalogue) and `ideas/*.md`. `src/app.css` carries both themes as tokens in the three-state pattern (bare `:root` light; `@media (prefers-color-scheme: dark)` guarded `:root:not([data-theme="light"])`; `:root[data-theme="dark"]`). Every token must be declared in the bare `:root` and redefined in both dark blocks (validator).
 - Three kinds, one verb each: guide → Install (a generated `skills/<slug>/SKILL.md`), howto → Send to your agent, note → Open. A guide is a file with `agent:` blocks; a file without them is a how-to or a note. The validator refuses a mismatch.
-- The agent's page is always the other theme (`--agent-*` tokens). A guide's steps are listed in a sticky index beside them (`.index`, lit by `activate(n)`); the wiring drawing from the Longwire study was removed on 2026-09-09 as not useful and narrowing the post — do not bring it back. `wire:`/`lanes:`/`flow:` in a file are ignored.
+- The agent's page is always the other theme (`--agent-*` tokens). **A post is one column, 960px, as wide as its head — nothing sits beside it.** The wiring drawing and then a step index were each tried beside the steps on 2026-09-09 and the owner rejected both as narrowing the post; the validator refuses any sidebar. `wire:`/`lanes:`/`flow:` in a file are ignored.
 - Theme in `localStorage["ideasos-theme"]`. There is no "switched on" state: the power button on cards was dropped on 2026-09-09 as a bookmark nobody asked for; the validator refuses its return.
 - Bump `?v=N` on `src/app.css` / `src/app.js` in `index.html` in the same commit as a change to them.
 
@@ -21,7 +21,7 @@ QA runs headless Chrome over CDP at three viewports (1440, 390, 320) against `ht
 
 ## Test hook
 
-`App.state()` → `{ready, loaded, route, kind, slug, steps, active, side, theme, entries, live, shown, filter, q, agents, indexed, activeIndex, install, lastCopy}`; `App.go(hash)`, `App.run(line)`, `App.activate(n)`, `App.side(which)`, `App.theme(which)`, `App.stepText(n)`, `App.handoff(slug)`, `App.skill()`, `App.filter(k)`, `App.search(q)`.
+`App.state()` → `{ready, loaded, route, kind, slug, steps, active, side, theme, entries, live, shown, filter, q, agents, install, lastCopy}`; `App.go(hash)`, `App.run(line)`, `App.activate(n)`, `App.side(which)`, `App.theme(which)`, `App.stepText(n)`, `App.handoff(slug)`, `App.skill()`, `App.filter(k)`, `App.search(q)`.
 
 ## Deploying (the owner runs it via Hermes)
 
