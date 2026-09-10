@@ -106,18 +106,18 @@ def home(p, vp):
     p.load("/")
     p.ev("localStorage.clear(); 1"); p.load("/")
     s = p.ev("App.state()")
-    check(f"{vp} the catalogue renders", s["entries"] == 8 and s["live"] == 2 and s["shown"] == 8 and p.ev("document.querySelectorAll('.card.queued').length") == 6, str(s))
+    check(f"{vp} the catalogue renders", s["entries"] == 9 and s["live"] == 3 and s["shown"] == 9 and p.ev("document.querySelectorAll('.card.queued').length") == 6, str(s))
     cols = p.ev("getComputedStyle(document.querySelector('.cards')).gridTemplateColumns.split(' ').length")
     check(f"{vp} cards sit three, two or one to a line", cols == (3 if width > 960 else 2 if width > 640 else 1), f"{cols} at {width}")
     check(f"{vp} each kind carries its verb", p.ev("document.querySelector('.card[data-slug=doorman] .btn.primary').textContent") == "Install"
           and p.ev("document.querySelectorAll('.card[data-slug=hallway] .btn.primary').length") == 0 and p.ev("document.querySelector('.card[data-slug=hallway] .btn').textContent") == "Open"
           and p.ev("document.querySelector('.card[data-slug=doorman] .kind').textContent") == "Guide" and p.ev("document.querySelector('.card[data-slug=hallway] .kind').textContent") == "Note")
-    check(f"{vp} the status bar counts", "8 ideas" in p.ev("document.getElementById('s-counts').textContent") and "1 installable" in p.ev("document.getElementById('s-counts').textContent") and "6 in the queue" in p.ev("document.getElementById('s-counts').textContent"))
+    check(f"{vp} the status bar counts", "9 ideas" in p.ev("document.getElementById('s-counts').textContent") and "1 installable" in p.ev("document.getElementById('s-counts').textContent") and "6 in the queue" in p.ev("document.getElementById('s-counts').textContent"))
     p.ev("App.filter('note'); 1"); notes = p.ev("App.state().shown")
     p.ev("App.filter('guide'); 1"); guides = p.ev("App.state().shown")
     p.ev("App.filter('all'); App.search('doorman'); 1"); found = p.ev("App.state().shown")
     p.ev("App.search(''); 1")
-    check(f"{vp} the grid filters and searches", notes == 2 and guides == 3 and found == 2 and p.ev("App.state().shown") == 8 and p.ev("document.querySelectorAll('.filters button').length") == 4, f"{notes} {guides} {found}")
+    check(f"{vp} the grid filters and searches", notes == 2 and guides == 3 and found == 2 and p.ev("App.state().shown") == 9 and p.ev("document.querySelectorAll('.filters button').length") == 4, f"{notes} {guides} {found}")
     check(f"{vp} no card carries a power button", p.ev("document.querySelectorAll('.power, .glyph').length") == 0)
     check(f"{vp} every card leads with the name you type", p.ev("[...document.querySelectorAll('.card')].every(c => c.querySelector('.c-top .name').textContent === c.dataset.slug)")
           and p.ev("document.querySelector('.card[data-slug=doorman] .c-top').textContent").startswith("doorman"))
@@ -172,7 +172,7 @@ def post(p, vp):
     check(f"{vp} a note is just the text, one column", s["kind"] == "note" and s["steps"] == 0 and s["agents"] == 0 and s["indexed"] == 0 and p.ev("document.querySelectorAll('.actions .btn.primary').length") == 0 and p.ev("document.querySelectorAll('.controls').length") == 0
           and p.ev("getComputedStyle(document.querySelector('.body')).gridTemplateColumns.split(' ').length") == 1, str(s["kind"]))
     p.go("#/agents")
-    check(f"{vp} the for-agents page lists the twins and the skill", p.ev("document.querySelectorAll('.twins li').length") == 3 and "llms.txt" in p.ev("document.getElementById('view').textContent")
+    check(f"{vp} the for-agents page lists the twins and the skill", p.ev("document.querySelectorAll('.twins li').length") == 4 and "llms.txt" in p.ev("document.getElementById('view').textContent")
           and "start with step 1" in p.ev("document.getElementById('handoff-example').textContent") and p.ev("document.querySelector('.menu a[aria-current=\"page\"]').dataset.nav") == "agents")
     check(f"{vp} a plain page uses the width beside an index of its sections", p.ev("document.querySelectorAll('.plain .index [data-step]').length") == 4
           and p.ev("document.querySelector('.plain .body-copy').getBoundingClientRect().width") >= (700 if wide else 250) and p.ev("document.querySelectorAll('.body-copy h2[id^=sec-]').length") == 4)
