@@ -1,9 +1,9 @@
-/* ideasos — the launcher. Sea-green paper by day, deep teal at night, one coral LED for whatever is switched on.
+/* ideasos — the launcher. Sea-green paper by day, deep teal at night, one coral accent for what is live.
    Bricolage Grotesque for the words, Geist Mono for anything the system says. The agent's page is always the other theme. */
 :root {
   color-scheme: light;
   --ground: #ebf3f1; --panel: #f7fcfb; --panel-2: #dbe8e5; --ink: #0e2321; --ink-2: #355350; --muted: #55716d; --line: #bcd2ce; --line-2: #a3bdb8;
-  --on: #ff6a4d; --on-glow: rgba(255, 106, 77, .35); --on-text: #bd3a1f;
+  --on: #ff6a4d; --on-text: #bd3a1f;
   --agent-bg: #0b1a19; --agent-ink: #e7f3f1; --agent-muted: #9fbbb6; --agent-line: #24403d; --agent-panel: #152d2b; --agent-on: #ff7a5c;
   --sans: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif; --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --wrap: 1180px; --gutter: clamp(18px, 4vw, 48px);
@@ -12,14 +12,14 @@
   :root:not([data-theme="light"]) {
     color-scheme: dark;
     --ground: #0b1a19; --panel: #122524; --panel-2: #1a3230; --ink: #e7f3f1; --ink-2: #bfd5d1; --muted: #9fbbb6; --line: #24403d; --line-2: #35534f;
-    --on: #ff7a5c; --on-glow: rgba(255, 122, 92, .3); --on-text: #ff8f75;
+    --on: #ff7a5c; --on-text: #ff8f75;
     --agent-bg: #ebf3f1; --agent-ink: #0e2321; --agent-muted: #55716d; --agent-line: #bcd2ce; --agent-panel: #dbe8e5; --agent-on: #bd3a1f;
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
   --ground: #0b1a19; --panel: #122524; --panel-2: #1a3230; --ink: #e7f3f1; --ink-2: #bfd5d1; --muted: #9fbbb6; --line: #24403d; --line-2: #35534f;
-  --on: #ff7a5c; --on-glow: rgba(255, 122, 92, .3); --on-text: #ff8f75;
+  --on: #ff7a5c; --on-text: #ff8f75;
   --agent-bg: #ebf3f1; --agent-ink: #0e2321; --agent-muted: #55716d; --agent-line: #bcd2ce; --agent-panel: #dbe8e5; --agent-on: #bd3a1f;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -75,11 +75,6 @@ h1, h2, h3 { text-wrap: balance; }
 .card:hover { border-color: var(--line-2); }
 .c-top { display: flex; align-items: center; gap: 10px; font: 400 11.5px/1.5 var(--mono); color: var(--muted); }
 .kind { padding: 2px 7px; border: 1px solid var(--line-2); border-radius: 4px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; font-size: 10px; color: var(--ink); }
-.power { margin-left: auto; width: 20px; height: 20px; display: inline-grid; place-items: center; border-radius: 4px; }
-.power:hover, .power:focus-visible { background: var(--panel-2); outline: none; }
-.glyph { display: inline-block; width: 15px; height: 15px; }
-.glyph path { fill: none; stroke: var(--line-2); stroke-width: 2.6; stroke-linecap: round; transition: stroke .15s; }
-.card.on .glyph path { stroke: var(--on); filter: drop-shadow(0 0 5px var(--on-glow)); }
 .c-title { font: 600 19px/1.22 var(--sans); letter-spacing: -.015em; text-decoration: none; }
 a.c-title:hover, a.c-title:focus-visible { text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 3px; outline: none; }
 .c-sum { color: var(--ink-2); font-size: 14.5px; line-height: 1.45; text-wrap: pretty; }
@@ -242,7 +237,7 @@ html[data-side="agent"] .intro { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .cursor { animation: none; }
-  .card, .btn, .a-copy, .glyph path, pre.code .copy { transition: none; }
+  .card, .btn, .a-copy, pre.code .copy { transition: none; }
 }
 
 /* ---------- print: both pages, the agent's as a light box ---------- */

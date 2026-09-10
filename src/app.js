@@ -1,9 +1,8 @@
 /* ideasos — the launcher. Every idea is a markdown file in ideas/; index.json is the catalogue. A guide's steps carry
    `you:` (your page) and `agent:` (your agent's page, with check:, confirm: and report: lines pulled out); a guide with
    an agent page is also a skill, built into skills/<slug>/SKILL.md. Each kind has one verb: a guide installs, a how-to
-   is sent to your agent, a note is opened. The prompt on the home is the search and understands the verbs. An idea you
-   pick up is switched on, remembered in this browser. Beside a guide's steps sits an index of them that lights the one
-   you are reading. window.App is the interface the tests use. */
+   is sent to your agent, a note is opened. The prompt on the home is the search and understands the verbs. Beside a
+   guide's steps sits an index of them that lights the one you are reading. window.App is the interface the tests use. */
 (() => {
   "use strict";
   const $ = id => document.getElementById(id);
@@ -177,22 +176,7 @@
       copy(handoffText(e), e.agent ? "Copied: hand this guide to your agent." : "Copied: send this to your agent.");
     } else if (verb === "open") { location.hash = `#/ideas/${slug}`; return true; }
     else return false;
-    switchOn(slug, true);
     return true;
-  }
-
-  // ---------- switched on, remembered here ----------
-  const onKey = "ideasos-on";
-  function onList() { try { return JSON.parse(localStorage.getItem(onKey)) || []; } catch (e) { return []; } }
-  function isOn(slug) { return onList().includes(slug); }
-  function switchOn(slug, on) {
-    const list = onList().filter(s => s !== slug); if (on) list.push(slug);
-    try { localStorage.setItem(onKey, JSON.stringify(list)); } catch (e) { /* private mode */ }
-    for (const c of view.querySelectorAll(`.card[data-slug="${slug}"]`)) {
-      c.classList.toggle("on", on);
-      const b = c.querySelector(".power"); if (b) { b.setAttribute("aria-pressed", String(on)); b.setAttribute("aria-label", on ? "Switched on" : "Switch on"); }
-    }
-    paintStatus();
   }
 
   // ---------- theme ----------
@@ -208,12 +192,11 @@
 
   // ---------- rendering ----------
   const version = v => v ? `v${v.replace(/-/g, ".")}` : "";
-  const glyph = () => '<svg class="glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7.4 6.4a8 8 0 1 0 9.2 0"/><path d="M12 2.8v9.4"/></svg>';
   const toolCard = id => { const t = index.tools[id]; return t ? `<li class="tool"><a href="${esc(t.url)}" rel="noopener">${esc(t.name)}</a><span>${esc(t.blurb)}</span></li>` : `<li class="tool"><a href="#">${esc(id)}</a></li>`; };
   function paintStatus() {
     if (!index) return;
-    const live = index.entries.filter(e => e.status === "live"), on = onList().filter(s => entryOf(s)).length;
-    statusCounts.innerHTML = `<span>${index.entries.length} ideas</span> · <span>${live.length} live</span> · <span>${live.filter(e => e.skill).length} installable</span> · <span class="lit" id="s-on">${on} switched on</span>`;
+    const live = index.entries.filter(e => e.status === "live");
+    statusCounts.innerHTML = `<span>${index.entries.length} ideas</span> · <span>${live.length} live</span> · <span class="lit">${live.filter(e => e.skill).length} installable</span> · <span>${index.entries.length - live.length} in the queue</span>`;
   }
   function verbButtons(e) {
     if (e.kind === "guide" && e.skill) return `<button class="btn primary" type="button" data-verb="install" data-slug="${esc(e.slug)}">Install</button>`;
@@ -221,9 +204,9 @@
     return "";
   }
   function card(e) {
-    const isLive = e.status === "live", href = `#/ideas/${e.slug}`, on = isLive && isOn(e.slug);
-    return `<li class="card${isLive ? "" : " queued"}${on ? " on" : ""}" data-slug="${esc(e.slug)}" data-kind="${esc(e.kind)}">
-      <p class="c-top"><span class="kind">${KINDS[e.kind]}</span>${e.time ? `<span>${esc(e.time)}</span>` : ""}${e.level ? `<span>${esc(e.level)}</span>` : ""}${isLive ? `<button class="power" type="button" data-power="${esc(e.slug)}" aria-pressed="${String(on)}" aria-label="${on ? "Switched on" : "Switch on"}">${glyph()}</button>` : ""}</p>
+    const isLive = e.status === "live", href = `#/ideas/${e.slug}`;
+    return `<li class="card${isLive ? "" : " queued"}" data-slug="${esc(e.slug)}" data-kind="${esc(e.kind)}">
+      <p class="c-top"><span class="kind">${KINDS[e.kind]}</span>${e.time ? `<span>${esc(e.time)}</span>` : ""}${e.level ? `<span>${esc(e.level)}</span>` : ""}</p>
       ${isLive ? `<a class="c-title" href="${href}">${esc(e.title)}</a>` : `<span class="c-title">${esc(e.title)}</span>`}
       <p class="c-sum">${esc(e.summary)}</p>
       <p class="c-foot">${isLive ? `${verbButtons(e)}<a class="btn" href="${href}">Open</a><span class="ver">${version(e.verified)}</span>` : '<span class="q">in the queue</span>'}</p>
@@ -239,7 +222,7 @@
         <input id="q" type="search" value="${esc(state.q)}" placeholder="search, or: install doorman · send hallway · open claude-md" autocomplete="off" aria-label="Search, or a command" spellcheck="false">
         <span class="hint"><kbd>↵</kbd> run <kbd>⌘K</kbd> here</span>
       </div>
-      <div class="filters" role="group" aria-label="Filter">${[["all", "All"], ["guide", "Guides"], ["howto", "How-tos"], ["note", "Notes"], ["on", "Switched on"]].map(([k, l]) => `<button type="button" data-filter="${k}" aria-pressed="${String(k === state.filter)}">${l}</button>`).join("")}</div>
+      <div class="filters" role="group" aria-label="Filter">${[["all", "All"], ["guide", "Guides"], ["howto", "How-tos"], ["note", "Notes"]].map(([k, l]) => `<button type="button" data-filter="${k}" aria-pressed="${String(k === state.filter)}">${l}</button>`).join("")}</div>
       <ul class="cards" id="list" aria-label="Ideas"></ul>
       <p class="count" id="count"></p>
     </section>`;
@@ -247,7 +230,7 @@
   }
   function matches(e) {
     const f = state.filter, q = state.q.trim().toLowerCase();
-    const byFilter = f === "all" || (f === "on" ? isOn(e.slug) : e.kind === f);
+    const byFilter = f === "all" || e.kind === f;
     return byFilter && (!q || `${e.slug} ${e.title} ${e.summary} ${e.parts}`.toLowerCase().includes(q));
   }
   function renderList() {
@@ -421,8 +404,6 @@
           <li><span class="kind">How-to</span><b>Send to your agent</b><p>Steps or an explanation without an agent page. One line hands the file to your agent as context.</p></li>
           <li><span class="kind">Note</span><b>Open</b><p>A methodology, an opinion, something worth thinking about. Just read it.</p></li>
         </ul>
-        <h2>Switched on</h2>
-        <p>An idea you pick up is switched on: the glyph on its card lights, this browser remembers it, and the status bar counts it. That is all it means. It is a bookmark with a better name.</p>
         <h2>Verified with</h2>
         <p>When a tool is recommended it is because it is in use here. Every idea carries the date and the versions it was last verified with, because ideas about this rot in months, and a site that admits its age is the one worth trusting.</p>
       `)}
@@ -462,14 +443,13 @@
   }
 
   document.addEventListener("click", e => {
-    const t = e.target.closest("[data-filter], [data-side], [data-copy], [data-verb], [data-power], [data-act], [data-jump], [data-jump-sec], .theme [data-theme]");
+    const t = e.target.closest("[data-filter], [data-side], [data-copy], [data-verb], [data-act], [data-jump], [data-jump-sec], .theme [data-theme]");
     if (!t) return;
     if (t.dataset.filter) { state.filter = t.dataset.filter; renderList(); }
     else if (t.dataset.jump) { const s = $(`step-${t.dataset.jump}`); if (s) { s.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); activate(+t.dataset.jump); } }
     else if (t.dataset.jumpSec) { const s = $(`sec-${t.dataset.jumpSec}`); if (s) s.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); }
     else if (t.dataset.side) setSide(t.dataset.side);
     else if (t.dataset.theme) setTheme(t.dataset.theme);
-    else if (t.dataset.power) { const on = !isOn(t.dataset.power); switchOn(t.dataset.power, on); say(on ? "Switched on. This browser remembers it." : "Switched off."); }
     else if (t.dataset.copy === "code") copy(t.parentElement.querySelector("code").textContent, "Copied");
     else if (t.dataset.copy) copy(stepText(+t.dataset.copy), `Copied step ${t.dataset.copy} with its context`);
     else if (t.dataset.verb) { e.preventDefault(); doVerb(t.dataset.verb, t.dataset.slug); }
@@ -494,10 +474,10 @@
   window.App = {
     state: () => ({ ready, loaded, route: location.hash, kind: current ? current.kind : null, slug: current ? current.slug : null, steps: current ? current.steps.length : 0, active: state.active, side: root.dataset.side, theme: themeNow(),
       entries: index ? index.entries.length : 0, live: index ? index.entries.filter(e => e.status === "live").length : 0, shown: view.querySelectorAll(".card").length, filter: state.filter, q: state.q,
-      on: onList(), agents: view.querySelectorAll(".step .agent:not(.none)").length, indexed: view.querySelectorAll(".index [data-step]").length, activeIndex: (view.querySelector(".index .is-active") || { dataset: {} }).dataset.step || null,
+      agents: view.querySelectorAll(".step .agent:not(.none)").length, indexed: view.querySelectorAll(".index [data-step]").length, activeIndex: (view.querySelector(".index .is-active") || { dataset: {} }).dataset.step || null,
       install: current ? current.install : "", lastCopy }),
     go: h => { if (location.hash === h) route(); else location.hash = h; },
-    run, activate, side: setSide, theme: setTheme, on: switchOn, stepText, handoff: slug => { const e = entryOf(slug || (current && current.slug)); return e ? handoffText(e) : ""; }, skill: () => current ? current.skill : "",
+    run, activate, side: setSide, theme: setTheme, stepText, handoff: slug => { const e = entryOf(slug || (current && current.slug)); return e ? handoffText(e) : ""; }, skill: () => current ? current.skill : "",
     filter: k => { state.filter = k; renderList(); }, search: q => { state.q = q; renderList(); },
   };
 })();

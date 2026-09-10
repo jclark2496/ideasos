@@ -60,7 +60,7 @@ need(css, [":root {", "@media (prefers-color-scheme: dark)", ':root:not([data-th
 if ".rail" in css or "parseFlow" in js:
     raise SystemExit("the wiring drawing was removed on 2026-09-09; a guide carries a step index instead")
 root_block = re.search(r":root \{(.*?)\n\}", css, re.S).group(1)
-for token in ("--ground", "--panel", "--panel-2", "--ink", "--ink-2", "--muted", "--line", "--line-2", "--on", "--on-glow", "--on-text", "--agent-bg", "--agent-ink", "--agent-muted", "--agent-line", "--agent-panel", "--agent-on"):
+for token in ("--ground", "--panel", "--panel-2", "--ink", "--ink-2", "--muted", "--line", "--line-2", "--on", "--on-text", "--agent-bg", "--agent-ink", "--agent-muted", "--agent-line", "--agent-panel", "--agent-on"):
     if f"{token}:" not in root_block:
         raise SystemExit(f"app.css declares {token} only inside a theme block; every token must exist in the bare :root")
     for blk in re.findall(r'(?::root:not\(\[data-theme="light"\]\)|:root\[data-theme="dark"\]) \{(.*?)\n  ?\}', css, re.S):
@@ -69,9 +69,11 @@ for token in ("--ground", "--panel", "--panel-2", "--ink", "--ink-2", "--muted",
 
 # ---- the app ----
 need(js, ["function parseGuide", "function agentOf", "function activate", "IntersectionObserver", 'class="index"', "data-jump", "const installCmd", "const handoffText", "function stepText",
-          "function run(", "function switchOn", "function setTheme", "localStorage", "window.App", ".claude/skills/", 'data-verb="install"', 'data-verb="send"', "renderAgents", "renderAbout"], "app.js")
+          "function run(", "function setTheme", "localStorage", "window.App", ".claude/skills/", 'data-verb="install"', 'data-verb="send"', "renderAgents", "renderAbout"], "app.js")
 if "<table" in js:
     raise SystemExit("the catalogue is a grid of cards, not a table")
+if "switchOn" in js or "data-power" in js or ".power" in css:
+    raise SystemExit("the switched-on button was dropped on 2026-09-09; the verbs stand on their own")
 
 # ---- the catalogue ----
 site = index["site"]
