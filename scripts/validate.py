@@ -56,7 +56,9 @@ js_v = re.search(r'src/app\.js\?v=(\d+)', html).group(1)
 # ---- the stylesheet: both themes drawn as tokens, in the three-state pattern ----
 need(css, [":root {", "@media (prefers-color-scheme: dark)", ':root:not([data-theme="light"])', ':root[data-theme="dark"]', "--ground:", "--panel:", "--ink:", "--muted:", "--on:", "--agent-bg:", "--agent-on:",
            ".cards { list-style: none; display: grid; grid-template-columns: repeat(3,", 'html[data-side="you"] .step .agent { display: none; }', 'html[data-side="agent"] .step .you { display: none; }',
-           ".rail { position: sticky", ".install {", ".status {", "@media print", "prefers-reduced-motion", "overflow-x: clip"], "app.css")
+           ".index { position: sticky", ".install {", ".status {", "@media print", "prefers-reduced-motion", "overflow-x: clip"], "app.css")
+if ".rail" in css or "parseFlow" in js:
+    raise SystemExit("the wiring drawing was removed on 2026-09-09; a guide carries a step index instead")
 root_block = re.search(r":root \{(.*?)\n\}", css, re.S).group(1)
 for token in ("--ground", "--panel", "--panel-2", "--ink", "--ink-2", "--muted", "--line", "--line-2", "--on", "--on-glow", "--on-text", "--agent-bg", "--agent-ink", "--agent-muted", "--agent-line", "--agent-panel", "--agent-on"):
     if f"{token}:" not in root_block:
@@ -66,7 +68,7 @@ for token in ("--ground", "--panel", "--panel-2", "--ink", "--ink-2", "--muted",
             raise SystemExit(f"app.css's dark theme does not redefine {token}")
 
 # ---- the app ----
-need(js, ["function parseGuide", "function agentOf", "function parseFlow", "function layout", "function activate", "IntersectionObserver", "const installCmd", "const handoffText", "function stepText",
+need(js, ["function parseGuide", "function agentOf", "function activate", "IntersectionObserver", 'class="index"', "data-jump", "const installCmd", "const handoffText", "function stepText",
           "function run(", "function switchOn", "function setTheme", "localStorage", "window.App", ".claude/skills/", 'data-verb="install"', 'data-verb="send"', "renderAgents", "renderAbout"], "app.js")
 if "<table" in js:
     raise SystemExit("the catalogue is a grid of cards, not a table")
@@ -117,8 +119,6 @@ for e in index["entries"]:
             raise SystemExit(f"{e['slug']}: {e['skill']} is out of date; run scripts/build_skills.py")
     elif e.get("skill"):
         raise SystemExit(f"{e['slug']}: only a guide installs as a skill")
-    if e.get("flow") and "->" not in e["flow"]:
-        raise SystemExit(f"{e['slug']}: a flow needs at least one wire")
     if f"ideasos.io/{e['file']}" not in llms:
         raise SystemExit(f"llms.txt does not list {e['file']}")
     if e.get("skill") and f"ideasos.io/{e['skill']}" not in llms:

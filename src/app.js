@@ -2,8 +2,8 @@
    `you:` (your page) and `agent:` (your agent's page, with check:, confirm: and report: lines pulled out); a guide with
    an agent page is also a skill, built into skills/<slug>/SKILL.md. Each kind has one verb: a guide installs, a how-to
    is sent to your agent, a note is opened. The prompt on the home is the search and understands the verbs. An idea you
-   pick up is switched on, remembered in this browser. A post that declares `lanes:` and `flow:` gets its wiring drawn
-   beside the steps, lighting each step's wire as you reach it. window.App is the interface the tests use. */
+   pick up is switched on, remembered in this browser. Beside a guide's steps sits an index of them that lights the one
+   you are reading. window.App is the interface the tests use. */
 (() => {
   "use strict";
   const $ = id => document.getElementById(id);
@@ -114,84 +114,13 @@
     return { meta, intro, steps };
   }
 
-  // ---------- the drawing: lanes, parts, wires ----------
-  function parseFlow(meta) {
-    if (!meta.flow) return { lanes: [], nodes: [], edges: [] };
-    const lanes = (meta.lanes || "local=Your machine | server=Your server | cloud=Elsewhere").split("|").map(s => s.trim()).filter(Boolean)
-      .map(s => { const [key, ...rest] = s.split("="); return { key: key.trim(), label: (rest.join("=") || key).trim() }; });
-    const nodes = [], edges = [], byId = new Map();
-    const node = tok => {
-      const m = tok.trim().match(/^([\w-]+)(?:@([\w-]+))?(?:\[([^\]]*)\])?$/);
-      if (!m) return null;
-      let n = byId.get(m[1]);
-      if (!n) { n = { id: m[1], lane: m[2] || lanes[0].key, label: m[3] || m[1] }; byId.set(n.id, n); nodes.push(n); }
-      else { if (m[2]) n.lane = m[2]; if (m[3]) n.label = m[3]; }
-      return n;
-    };
-    for (const seg of meta.flow.split(";")) {
-      if (!seg.trim()) continue;
-      const [chain, label = ""] = seg.split(/\s:\s|:\s(?=[^\]]*$)/).map(s => s.trim());
-      const hops = chain.split("->").map(node).filter(Boolean);
-      for (let i = 0; i + 1 < hops.length; i++) edges.push({ from: hops[i].id, to: hops[i + 1].id, label: label.trim() });
-    }
-    return { lanes, nodes, edges };
-  }
-  function layout(flow) {
-    const M = 18, W = 348, laneW = (W - 2 * M) / flow.lanes.length, bw = Math.min(88, laneW - 16), bh = 30, top = 40, gap = 62;
-    const laneIx = Object.fromEntries(flow.lanes.map((l, i) => [l.key, i]));
-    const next = flow.lanes.map(() => 0);
-    for (const n of flow.nodes) {
-      const li = laneIx[n.lane] ?? 0; n.li = li; n.row = next[li]++;
-      n.cx = M + laneW * (li + .5); n.cy = top + n.row * gap + bh / 2; n.x = n.cx - bw / 2; n.y = n.cy - bh / 2; n.w = bw; n.h = bh;
-    }
-    const rows = Math.max(1, ...next), H = top + rows * gap + 6;
-    const into = {};
-    for (const e of flow.edges) {
-      const a = flow.nodes.find(n => n.id === e.from), b = flow.nodes.find(n => n.id === e.to);
-      if (!a || !b) { e.path = ""; continue; }
-      const k = (into[b.id] = (into[b.id] || 0) + 1), dy = k === 1 ? 0 : k === 2 ? -8 : 8;
-      if (a.li === b.li) {
-        if (Math.abs(a.row - b.row) === 1) { e.path = a.row < b.row ? `M${a.cx} ${a.y + bh} V${b.y}` : `M${a.cx} ${a.y} V${b.y + bh}`; e.lx = a.cx; e.ly = (a.cy + b.cy) / 2; }
-        else { const side = a.li === 0 ? -1 : 1, x = a.cx + side * (bw / 2 + 8); e.path = `M${a.cx + side * bw / 2} ${a.cy} H${x} V${b.cy + dy} H${b.cx + side * bw / 2}`; e.lx = a.cx; e.ly = Math.max(a.cy, b.cy) - gap / 2; }
-      } else {
-        const dir = b.li > a.li ? 1 : -1, x1 = a.cx + dir * bw / 2, x2 = b.cx - dir * bw / 2, xm = (x1 + x2) / 2, y1 = a.cy, y2 = b.cy + dy;
-        if (Math.abs(a.li - b.li) > 1) { e.path = `M${x1} ${y1} H${xm} V${top - 20} H${x2 - dir * 20} V${y2} H${x2}`; e.lx = (x1 + x2) / 2; e.ly = top - 26; }
-        else if (a.row === b.row) { e.path = `M${x1} ${y1} H${x2}`; e.lx = xm; e.ly = y1 + bh / 2 + 11; }
-        else { e.path = `M${x1} ${y1} H${xm} V${y2} H${x2}`; e.lx = xm; e.ly = Math.min(y1, y2) + gap / 2; }
-      }
-    }
-    return { W, H, top };
-  }
-  function claims(steps) {
-    const c = new Map();
-    for (const s of steps) for (const w of s.wires) { const key = w.replace(/\s+/g, ""); if (!c.has(key)) c.set(key, s.n); }
-    return c;
-  }
-  function svg(flow, cl, dims) {
-    const st = key => cl.has(key) ? "pending" : "built", laneW = dims.W / flow.lanes.length;
-    return `<svg viewBox="0 0 ${dims.W} ${dims.H}" role="img" aria-label="Wiring: ${esc(flow.lanes.map(l => l.label).join(", "))}">
-      <defs>
-        <marker id="lw-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8z" class="arrow-fill"/></marker>
-        <marker id="lw-arrow-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8z" class="arrow-dim"/></marker>
-        <marker id="lw-arrow-live" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8z" class="arrow-live"/></marker>
-      </defs>
-      ${flow.lanes.map((l, i) => `<text class="lane-head" x="${laneW * (i + .5)}" y="14" text-anchor="middle">${esc(l.label)}</text>${i ? `<line class="lane-rule" x1="${laneW * i}" y1="22" x2="${laneW * i}" y2="${dims.H}"/>` : ""}`).join("")}
-      ${flow.edges.filter(e => e.path).map(e => { const key = `${e.from}->${e.to}`; return `<g class="wire ${st(key)}" data-wire="${esc(key)}" data-step="${cl.get(key) || ""}"><path d="${e.path}"/>${e.label ? `<rect x="${e.lx - (e.label.length * 5.5 + 8) / 2}" y="${e.ly - 7}" width="${e.label.length * 5.5 + 8}" height="13"/><text x="${e.lx}" y="${e.ly + 3}" text-anchor="middle">${esc(e.label)}</text>` : ""}</g>`; }).join("")}
-      ${flow.nodes.map(n => `<g class="node ${st(n.id)}" data-node="${esc(n.id)}" data-step="${cl.get(n.id) || ""}"><rect x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}"/><text x="${n.cx}" y="${n.cy + 4}" text-anchor="middle">${esc(n.label)}</text></g>`).join("")}
-    </svg>`;
-  }
+  // the reader reached step n: the step and its line in the index light up
   function activate(n) {
     state.active = n;
-    const rail = view.querySelector(".rail");
     for (const stp of view.querySelectorAll(".step")) stp.classList.toggle("is-active", +stp.dataset.step === n);
-    if (!rail) return;
-    for (const el of rail.querySelectorAll("[data-step]")) {
-      const s = +el.dataset.step;
-      el.classList.remove("pending", "built", "live");
-      el.classList.add(!s ? "built" : s === n ? "live" : s < n ? "built" : "pending");
-    }
-    const now = rail.querySelector(".now"), step = current && current.steps ? current.steps[n - 1] : null;
-    if (now) now.innerHTML = step ? `<b>Step ${n} of ${current.steps.length}</b> · ${esc(step.title)}<br>${step.wires.length ? `<span class="live-word">wiring</span> ${esc(step.wires.join(", "))}` : "nothing new on the drawing"}` : `<b>${current && current.steps ? current.steps.length : 0} steps.</b> Scroll and the wire each one builds lights up.`;
+    for (const li of view.querySelectorAll(".index [data-step]")) { const s = +li.dataset.step; li.classList.toggle("is-active", s === n); li.classList.toggle("is-done", s < n); }
+    const now = view.querySelector(".index .now");
+    if (now && current && current.steps) now.textContent = `step ${n} of ${current.steps.length}`;
   }
   function watch() {
     if (observer) observer.disconnect();
@@ -396,39 +325,37 @@
     </header>`;
   }
   async function renderGuide(e, g) {
-    const m = g.meta, flow = parseFlow(m), cl = claims(g.steps), hasAgent = g.steps.some(s => s.agent);
+    const m = g.meta, hasAgent = g.steps.some(s => s.agent);
     const skill = e.skill ? await load(e.skill) : "";
-    current = { kind: e.kind, slug: e.slug, file: e.file, meta: m, steps: g.steps, flow, skill, install: e.skill ? installCmd(e) : "" };
-    const drawn = flow.nodes.length > 0;
+    current = { kind: e.kind, slug: e.slug, file: e.file, meta: m, steps: g.steps, skill, install: e.skill ? installCmd(e) : "" };
     view.innerHTML = `<article class="post">
       ${headHtml(e, m, e.skill ? installHtml(e, g, skill) : "")}
       ${hasAgent ? `<div class="controls">${sideHtml()}<span class="eyebrow">${g.steps.length} steps</span></div>` : ""}
-      <div class="body${drawn ? "" : " no-rail"}">
+      <div class="body">
         <div class="steps">
           <div class="intro">${md(g.intro)}</div>
           ${g.steps.map(s => `<section class="step" id="step-${s.n}" data-step="${s.n}">
             <h2 class="step-head"><span class="num">${String(s.n).padStart(2, "0")}</span><span>${inline(s.title)}</span></h2>
-            ${drawn && s.wires.length ? `<p class="wires"><b>wires</b> ${esc(s.wires.join(" · "))}</p>` : ""}
             <div class="you">${md(s.you)}</div>
             ${hasAgent ? agentHtml(s, g.steps.length) : ""}
           </section>`).join("")}
         </div>
-        ${drawn ? `<aside class="rail" aria-label="How it's wired"><h2>How it's wired</h2>${svg(flow, cl, layout(flow))}<p class="now"><b>${g.steps.length} steps.</b> Scroll and the wire each one builds lights up.</p></aside>` : ""}
+        <aside class="index" aria-label="The steps">
+          <h2>Steps</h2>
+          <ol>${g.steps.map(s => `<li data-step="${s.n}"><button type="button" data-jump="${s.n}"><span class="num">${String(s.n).padStart(2, "0")}</span><span>${inline(s.title)}</span></button></li>`).join("")}</ol>
+          <p class="now">${g.steps.length} steps</p>
+        </aside>
       </div>
       ${footHtml(e, m)}
     </article>`;
     decorate(); watch();
   }
   function renderNote(e, text) {
-    const { meta: m, body } = front(text), flow = parseFlow(m);
-    current = { kind: e.kind, slug: e.slug, file: e.file, meta: m, steps: [], flow, skill: "", install: "" };
-    const drawn = flow.nodes.length > 0;
+    const { meta: m, body } = front(text);
+    current = { kind: e.kind, slug: e.slug, file: e.file, meta: m, steps: [], skill: "", install: "" };
     view.innerHTML = `<article class="post">
       ${headHtml(e, m, "")}
-      <div class="body${drawn ? "" : " no-rail"}">
-        <div class="note-body">${md(body)}</div>
-        ${drawn ? `<aside class="rail" aria-label="How it's wired"><h2>How it's wired</h2>${svg(flow, new Map(), layout(flow))}<p class="now"><b>The whole drawing.</b> A note has no steps, so nothing waits.</p></aside>` : ""}
-      </div>
+      <div class="body single"><div class="note-body">${md(body)}</div></div>
       ${footHtml(e, m)}
     </article>`;
     decorate();
@@ -515,9 +442,10 @@
   }
 
   document.addEventListener("click", e => {
-    const t = e.target.closest("[data-filter], [data-side], [data-copy], [data-verb], [data-power], [data-act], .theme [data-theme]");
+    const t = e.target.closest("[data-filter], [data-side], [data-copy], [data-verb], [data-power], [data-act], [data-jump], .theme [data-theme]");
     if (!t) return;
     if (t.dataset.filter) { state.filter = t.dataset.filter; renderList(); }
+    else if (t.dataset.jump) { const s = $(`step-${t.dataset.jump}`); if (s) { s.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); activate(+t.dataset.jump); } }
     else if (t.dataset.side) setSide(t.dataset.side);
     else if (t.dataset.theme) setTheme(t.dataset.theme);
     else if (t.dataset.power) { const on = !isOn(t.dataset.power); switchOn(t.dataset.power, on); say(on ? "Switched on. This browser remembers it." : "Switched off."); }
@@ -545,12 +473,10 @@
   window.App = {
     state: () => ({ ready, loaded, route: location.hash, kind: current ? current.kind : null, slug: current ? current.slug : null, steps: current ? current.steps.length : 0, active: state.active, side: root.dataset.side, theme: themeNow(),
       entries: index ? index.entries.length : 0, live: index ? index.entries.filter(e => e.status === "live").length : 0, shown: view.querySelectorAll(".card").length, filter: state.filter, q: state.q,
-      on: onList(), agents: view.querySelectorAll(".step .agent:not(.none)").length, nodes: current && current.flow ? current.flow.nodes.length : 0, wires: current && current.flow ? current.flow.edges.length : 0,
-      lit: { live: view.querySelectorAll(".rail .live").length, built: view.querySelectorAll(".rail .built").length, pending: view.querySelectorAll(".rail .pending").length },
+      on: onList(), agents: view.querySelectorAll(".step .agent:not(.none)").length, indexed: view.querySelectorAll(".index [data-step]").length, activeIndex: (view.querySelector(".index .is-active") || { dataset: {} }).dataset.step || null,
       install: current ? current.install : "", lastCopy }),
     go: h => { if (location.hash === h) route(); else location.hash = h; },
     run, activate, side: setSide, theme: setTheme, on: switchOn, stepText, handoff: slug => { const e = entryOf(slug || (current && current.slug)); return e ? handoffText(e) : ""; }, skill: () => current ? current.skill : "",
     filter: k => { state.filter = k; renderList(); }, search: q => { state.q = q; renderList(); },
-    parseFlow, layout,
   };
 })();

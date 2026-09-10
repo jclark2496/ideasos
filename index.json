@@ -63,9 +63,7 @@
       "file": "ideas/doorman.md",
       "agent": true,
       "pdf": true,
-      "skill": "skills/doorman/SKILL.md",
-      "lanes": "local=Your machine | server=Your server | cloud=Elsewhere",
-      "flow": "you@local[You] -> cc@local[Claude Code] : what to do; cc -> doorman@server[Doorman] : ssh; github@cloud[GitHub] -> doorman : git clone; doorman -> db@server[auth.db] : keys; caddy@server[Caddy] -> doorman : forward_auth; visitor@cloud[A visitor] -> caddy : https; phone@cloud[Your passkey] -> caddy : passkey"
+      "skill": "skills/doorman/SKILL.md"
     },
     {
       "kind": "note",
@@ -79,9 +77,7 @@
       "status": "live",
       "file": "ideas/hallway.md",
       "agent": false,
-      "pdf": true,
-      "lanes": "north=North office | hall=The hallway | south=South office",
-      "flow": "pn@north[North principal] -> morgan@north[Morgan · CoS] : desk chat; morgan -> channel@hall[#ops-hallway] : as a seat; ps@south[South principal] -> riley@south[Riley · CoS] : desk chat; riley -> channel : as a seat; hermes@hall[Hermes profiles] -> channel : worker; channel -> notebook@hall[Week notebook] : facts"
+      "pdf": true
     },
     {
       "kind": "guide",

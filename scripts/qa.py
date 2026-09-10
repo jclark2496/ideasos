@@ -142,8 +142,12 @@ def post(p, vp):
     p.load("/")
     p.go("#/ideas/doorman")
     s = p.ev("App.state()")
-    check(f"{vp} the guide renders with its agent pages and its drawing", s["kind"] == "guide" and s["steps"] == 6 and s["agents"] == 6 and s["nodes"] == 8 and s["wires"] == 7 and s["lit"]["pending"] == 8 and s["side"] == "both"
-          and p.ev("document.querySelectorAll('.step .wires').length") == 6 and p.ev("document.querySelectorAll('.rail .lane-head').length") == 3, str({k: s[k] for k in ('kind', 'steps', 'agents', 'nodes', 'wires', 'lit')}))
+    check(f"{vp} the guide renders with its agent pages and its index", s["kind"] == "guide" and s["steps"] == 6 and s["agents"] == 6 and s["indexed"] == 6 and s["side"] == "both"
+          and p.ev("document.querySelectorAll('.rail, .wires').length") == 0, str({k: s[k] for k in ('kind', 'steps', 'agents', 'indexed')}))
+    wide = int(vp.split("x")[0]) > 960
+    check(f"{vp} the index sits beside the steps on a wide screen and steps aside on a narrow one", p.ev("getComputedStyle(document.querySelector('.index')).display") == ("grid" if wide else "none")
+          and (not wide or p.ev("document.querySelector('.index').getBoundingClientRect().left > document.querySelector('.steps').getBoundingClientRect().right")))
+    check(f"{vp} the reading column uses the width", p.ev("document.querySelector('.step').getBoundingClientRect().width") >= (700 if wide else 250))
     check(f"{vp} the head carries the verbs and the install line", p.ev("document.querySelector('.actions .btn.primary').textContent") == "Install" and "curl" in p.ev("document.getElementById('install-cmd').textContent")
           and "6 steps, 10 checks, 2 ask first" in p.ev("document.querySelector('.install .then').textContent") and p.ev("App.skill().startsWith('---\\nname: doorman')")
           and p.ev("document.querySelectorAll('.step .agent .ask').length") == 2 and p.ev("document.querySelectorAll('.step .agent .checks li').length") == 10)
@@ -155,20 +159,21 @@ def post(p, vp):
     check(f"{vp} a copied step carries its context", "step 4 of 6" in st and "Steps 1 to 3 are done" in st and "Ask me before you act" in st and "Before moving on, check:" in st and "#/ideas/doorman" in st, st[:100])
     ho = p.ev("App.handoff('doorman')")
     check(f"{vp} the whole guide hands over in one sentence", "ideas/doorman.md" in ho and '"agent:"' in ho and "start with step 1" in ho)
-    p.ev("App.activate(1); 1"); l1 = p.ev("App.state().lit")
-    p.ev("App.activate(4); 1"); live4 = p.ev("[...document.querySelectorAll('.rail .wire.live')].map(w => w.dataset.wire).sort().join(' ')")
-    p.ev("App.activate(6); 1"); l6 = p.ev("App.state().lit")
-    check(f"{vp} each step lights the wire it builds", l1["live"] == 2 and l1["pending"] == 6 and live4 == "caddy->doorman visitor->caddy" and l6["pending"] == 0 and l6["live"] == 1
-          and p.ev("document.querySelector('.step.is-active').dataset.step") == "6" and "Step 6 of 6" in p.ev("document.querySelector('.rail .now').textContent"), f"{l1} {live4} {l6}")
+    p.ev("App.activate(4); 1")
+    check(f"{vp} the index lights the step you are reading", p.ev("App.state().activeIndex") == "4" and p.ev("document.querySelectorAll('.index .is-done').length") == 3
+          and p.ev("document.querySelector('.step.is-active').dataset.step") == "4" and "step 4 of 6" in p.ev("document.querySelector('.index .now').textContent"))
+    if wide:
+        p.ev("document.querySelector('.index [data-jump=\"6\"]').click(); 1")
+        p.wait(lambda: p.ev("App.state().activeIndex") == "6", timeout=4, what="index jump")
+        check(f"{vp} the index jumps to a step", p.ev("App.state().activeIndex") == "6" and p.ev("location.hash") == "#/ideas/doorman")
     check(f"{vp} the agent panel is the other theme", p.ev("getComputedStyle(document.querySelector('.step .agent')).backgroundColor") != p.ev("getComputedStyle(document.body).backgroundColor")
           and p.ev("getComputedStyle(document.querySelector('.step .agent p')).color") == p.ev("getComputedStyle(document.querySelector('.step .agent')).color"))
-    check(f"{vp} every command has a copy button and the drawing stays in its panel", p.ev("document.querySelectorAll('pre.code .copy').length") >= 8
-          and p.ev("(() => { const r = document.querySelector('.rail').getBoundingClientRect(); return [...document.querySelectorAll('.rail svg text')].every(t => { const b = t.getBoundingClientRect(); return b.left >= r.left - 1 && b.right <= r.right + 1; }); })()"))
+    check(f"{vp} every command has a copy button", p.ev("document.querySelectorAll('pre.code .copy').length") >= 8)
     check(f"{vp} the foot carries the open-source line", "CC BY 4.0" in p.ev("document.querySelector('.p-foot').textContent") and p.ev("document.querySelector('.p-foot a[href$=\"doorman.md\"]') !== null") and "fork this idea" in p.ev("document.querySelector('.p-foot').textContent"))
     p.go("#/ideas/hallway")
     s = p.ev("App.state()")
-    check(f"{vp} a note is just the text, with its drawing", s["kind"] == "note" and s["steps"] == 0 and s["agents"] == 0 and s["nodes"] == 7 and p.ev("document.querySelectorAll('.actions .btn.primary').length") == 0 and p.ev("document.querySelectorAll('.controls').length") == 0
-          and "North office" in p.ev("document.querySelector('.rail').textContent"), str(s["kind"]))
+    check(f"{vp} a note is just the text, one column", s["kind"] == "note" and s["steps"] == 0 and s["agents"] == 0 and s["indexed"] == 0 and p.ev("document.querySelectorAll('.actions .btn.primary').length") == 0 and p.ev("document.querySelectorAll('.controls').length") == 0
+          and p.ev("getComputedStyle(document.querySelector('.body')).gridTemplateColumns.split(' ').length") == 1, str(s["kind"]))
     p.go("#/agents")
     check(f"{vp} the for-agents page lists the twins and the skill", p.ev("document.querySelectorAll('.twins li').length") == 3 and "llms.txt" in p.ev("document.getElementById('view').textContent")
           and "start with step 1" in p.ev("document.getElementById('handoff-example').textContent") and p.ev("document.querySelector('.menu a[aria-current=\"page\"]').dataset.nav") == "agents")
