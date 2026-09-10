@@ -6,6 +6,10 @@
 
 - [One login for every site you own](https://ideasos.io/ideas/doorman.md): Doorman, a passkey login in front of every site on a domain, behind Caddy. Six steps, about 45 minutes. Skill: https://ideasos.io/skills/doorman/SKILL.md
 
+## How-tos
+
+- [An assistant in your messages, not a terminal](https://ideasos.io/ideas/hermes-imessage.md): One-to-one Hermes iMessage through Photon, a reusable personality prompt, privacy boundaries, and quieter restart notifications. No companion repository.
+
 ## Notes
 
 - [They don't share a brain. They share a hallway.](https://ideasos.io/ideas/hallway.md): Two AI desks on two subscriptions, one Slack room between them. Methodology, not a build.

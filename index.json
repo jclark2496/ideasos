@@ -51,6 +51,20 @@
   },
   "entries": [
     {
+      "kind": "howto",
+      "slug": "hermes-imessage",
+      "title": "An assistant in your messages, not a terminal",
+      "summary": "Give Hermes a voice, connect it to iMessage through Photon, and keep the machinery out of the conversation. Settings and words, not another app.",
+      "parts": "hermes · photon · imessage",
+      "time": "15 min",
+      "level": "Beginner",
+      "verified": "2026-09-09",
+      "status": "live",
+      "file": "ideas/hermes-imessage.md",
+      "agent": false,
+      "pdf": true
+    },
+    {
       "kind": "guide",
       "slug": "doorman",
       "title": "One login for every site you own",
