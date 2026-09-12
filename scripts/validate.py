@@ -102,6 +102,8 @@ for e in index["entries"]:
         raise SystemExit(f"{e['slug']} points at a missing file: {e['file']}")
     text = path.read_text(encoding="utf-8")
     meta = front(text)
+    if e["slug"] == "hermes-imessage" and (meta.get("title") != e["title"] or meta.get("summary") != e["summary"]):
+        raise SystemExit("hermes-imessage: title and summary must match between the file and catalogue")
     if meta.get("kind", e["kind"]) != e["kind"]:
         raise SystemExit(f"{e['slug']}: the file says kind {meta.get('kind')} and the catalogue says {e['kind']}")
     if meta.get("by", site["name"]) != site["name"]:
@@ -123,6 +125,28 @@ for e in index["entries"]:
             raise SystemExit(f"{e['slug']}: {e['skill']} is out of date; run scripts/build_skills.py")
     elif e.get("skill"):
         raise SystemExit(f"{e['slug']}: only a guide installs as a skill")
+    if e["slug"] == "hermes-imessage":
+        need(llms, [
+            f"[{e['title']}](https://ideasos.io/{e['file']}): {e['summary']}"
+        ], "hermes-imessage llms catalogue")
+        need(text, [
+            "## Give the assistant its own profile",
+            "## Write an operator, not a character",
+            "## Add capabilities deliberately",
+            "## Put information in the right place",
+            "## Set approvals by consequence",
+            "**Calendar and reminders**",
+            "**Email triage and drafting**",
+            "**Research**",
+            "**Shopping with a human at the last gate**",
+            "**Household routing**",
+            "**Specialist delegation**",
+            "## Stop at human checkpoints",
+            "## Test identity without using secrets",
+            "## Be honest about groups",
+            "## Maintain a verified-capabilities note",
+            "https://link.com/agents",
+        ], "hermes-imessage playbook")
     if f"ideasos.io/{e['file']}" not in llms:
         raise SystemExit(f"llms.txt does not list {e['file']}")
     if e.get("skill") and f"ideasos.io/{e['skill']}" not in llms:

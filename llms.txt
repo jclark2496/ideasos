@@ -8,7 +8,7 @@
 
 ## How-tos
 
-- [An assistant in your messages, not a terminal](https://ideasos.io/ideas/hermes-imessage.md): One-to-one Hermes iMessage through Photon, a reusable personality prompt, privacy boundaries, and quieter restart notifications. No companion repository.
+- [Build a dedicated personal assistant in iMessage](https://ideasos.io/ideas/hermes-imessage.md): Give Hermes its own profile, useful tools, clear memory lanes, and approval boundaries—then run it from iMessage without confusing personality with permission.
 
 ## Notes
 

@@ -161,6 +161,13 @@ def post(p, vp):
           and p.ev("getComputedStyle(document.querySelector('.step .agent p')).color") == p.ev("getComputedStyle(document.querySelector('.step .agent')).color"))
     check(f"{vp} every command has a copy button", p.ev("document.querySelectorAll('pre.code .copy').length") >= 8)
     check(f"{vp} the foot carries the open-source line", "CC BY 4.0" in p.ev("document.querySelector('.p-foot').textContent") and p.ev("document.querySelector('.p-foot a[href$=\"doorman.md\"]') !== null") and "fork this idea" in p.ev("document.querySelector('.p-foot').textContent"))
+    p.go("#/ideas/hermes-imessage")
+    p.wait(lambda: p.ev("App.state().slug") == "hermes-imessage", what="personal-assistant playbook render")
+    s = p.ev("App.state()")
+    check(f"{vp} the personal-assistant playbook keeps its route and scope", s["kind"] == "howto" and s["slug"] == "hermes-imessage"
+          and p.ev("document.querySelector('.p-head h1').textContent") == "Build a dedicated personal assistant in iMessage"
+          and "Maintain a verified-capabilities note" in p.ev("document.querySelector('.steps').textContent")
+          and p.ev("document.querySelector('.steps a[href=\"https://link.com/agents\"]') !== null"), str(s))
     p.go("#/ideas/hallway")
     s = p.ev("App.state()")
     check(f"{vp} a note is just the text, one column", s["kind"] == "note" and s["steps"] == 0 and s["agents"] == 0 and p.ev("document.querySelectorAll('.actions .btn.primary').length") == 0 and p.ev("document.querySelectorAll('.controls').length") == 0
