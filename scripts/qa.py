@@ -10,6 +10,9 @@ wait is on window.App.state().
 from __future__ import annotations
 import base64
 import json
+import os
+import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -20,7 +23,26 @@ from urllib.request import urlopen
 import websocket
 
 ROOT = Path(__file__).resolve().parents[1]
-CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+
+
+def chrome_binary():
+    override = os.environ.get("CHROME")
+    if override:
+        return override
+    for path in (
+        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "/usr/bin/google-chrome-stable",
+        "/usr/bin/google-chrome",
+        "/usr/local/bin/google-chrome",
+        "/usr/bin/chromium",
+        "/usr/bin/chromium-browser",
+    ):
+        if os.path.isfile(path) and os.access(path, os.X_OK):
+            return path
+    found = shutil.which("google-chrome-stable") or shutil.which("google-chrome") or shutil.which("chromium")
+    if found:
+        return found
+    raise SystemExit("chrome not found; set CHROME to the browser binary")
 PORT = 9226
 HTTP = 8790
 BASE = f"http://127.0.0.1:{HTTP}"
@@ -256,30 +278,50 @@ def main():
     print("browser QA ok")
 
 
-def run_suite():
-    with tempfile.TemporaryDirectory(prefix="ideasos-chrome-") as profile:
-        browser = subprocess.Popen([CHROME, "--headless=new", "--no-first-run", "--hide-scrollbars", f"--remote-debugging-port={PORT}", f"--user-data-dir={profile}", "--remote-allow-origins=*", "about:blank"],
-                                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+def _stop_browser(browser):
+    if browser.poll() is not None:
+        return
+    try:
+        os.killpg(browser.pid, signal.SIGTERM)
+    except ProcessLookupError:
+        browser.terminate()
+    try:
+        browser.wait(timeout=5)
+    except subprocess.TimeoutExpired:
         try:
-            started = time.time()
-            while not (browser.poll() is None and _debug_ready()):
-                if time.time() - started > 10:
-                    raise SystemExit("chrome did not start")
-                time.sleep(.1)
-            tabs = json.load(urlopen(f"http://127.0.0.1:{PORT}/json"))
-            cdp = CDP(next(tab["webSocketDebuggerUrl"] for tab in tabs if tab["type"] == "page"))
-            cdp.call("Page.enable"); cdp.call("Runtime.enable"); cdp.call("Log.enable")
-            page = Page(cdp)
-            for width, height in VIEWPORTS:
-                vp = f"{width}x{height}"
-                page.emulate(width, height)
-                for scenario in (home, post, theme):
-                    scenario(page, vp)
-            if SHOTS:
-                shots(page)
-            check("no console errors", not cdp.console_errors, "; ".join(cdp.console_errors[:5]))
-        finally:
-            browser.terminate(); browser.wait(timeout=5)
+            os.killpg(browser.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            browser.kill()
+        browser.wait(timeout=5)
+
+
+def run_suite():
+    # Chrome on Linux keeps helper processes in the profile directory. Stop the
+    # whole process group, then remove the profile even if a file is still busy.
+    profile = tempfile.mkdtemp(prefix="ideasos-chrome-")
+    browser = subprocess.Popen([chrome_binary(), "--headless=new", "--no-first-run", "--disable-dev-shm-usage", "--hide-scrollbars", f"--remote-debugging-port={PORT}", f"--user-data-dir={profile}", "--remote-allow-origins=*", "about:blank"],
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+    try:
+        started = time.time()
+        while not (browser.poll() is None and _debug_ready()):
+            if time.time() - started > 10:
+                raise SystemExit("chrome did not start")
+            time.sleep(.1)
+        tabs = json.load(urlopen(f"http://127.0.0.1:{PORT}/json"))
+        cdp = CDP(next(tab["webSocketDebuggerUrl"] for tab in tabs if tab["type"] == "page"))
+        cdp.call("Page.enable"); cdp.call("Runtime.enable"); cdp.call("Log.enable")
+        page = Page(cdp)
+        for width, height in VIEWPORTS:
+            vp = f"{width}x{height}"
+            page.emulate(width, height)
+            for scenario in (home, post, theme):
+                scenario(page, vp)
+        if SHOTS:
+            shots(page)
+        check("no console errors", not cdp.console_errors, "; ".join(cdp.console_errors[:5]))
+    finally:
+        _stop_browser(browser)
+        shutil.rmtree(profile, ignore_errors=True)
 
 
 if __name__ == "__main__":

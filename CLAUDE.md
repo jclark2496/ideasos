@@ -1,6 +1,6 @@
 # ideasos
 
-Open source ideas for working with agents, at ideasos.io. Static: HTML + CSS + vanilla JS, no build for the site itself, hash routes. Owner: the brand is ideasos; every byline is the brand and the copy names no people (validator enforces). Deploys are done by the owner through Hermes using prompts Claude writes; never deploy from a session.
+Open source ideas for working with agents, at ideasos.io. Static: HTML + CSS + vanilla JS, no build for the site itself, hash routes. Owner: the brand is ideasos; every byline is the brand and the copy names no people (validator enforces). Production updates only when a commit lands on `main`: GitHub Actions publishes it. Do not rsync from a session. SSH to the server is break-glass only.
 
 ## Shape
 
@@ -23,6 +23,8 @@ QA runs headless Chrome over CDP at three viewports (1440, 390, 320) against `ht
 
 `App.state()` → `{ready, loaded, route, kind, slug, steps, active, side, theme, entries, live, shown, filter, q, agents, install, lastCopy}`; `App.go(hash)`, `App.run(line)`, `App.activate(n)`, `App.side(which)`, `App.theme(which)`, `App.stepText(n)`, `App.handoff(slug)`, `App.skill()`, `App.filter(k)`, `App.search(q)`.
 
-## Deploying (the owner runs it via Hermes)
+## Deploying
 
-Production: VPS2 `root@2.25.183.70`, Caddy. `/var/www/ideasos.io/releases/<full sha>` with a `current` symlink Caddy serves; rsync `index.html index.json llms.txt src ideas skills assets` into the release; chown www-data, dirs 755 files 644; `ln -sfn` atomically; curl checks against unique strings (`grep -c` counts lines and exits 1 on zero). Rollback is re-pointing the symlink; never delete releases.
+Merging to `main` is the only deploy. The manual rsync path is retired. GitHub Actions job `validate` runs on pull requests and on pushes (catalogue check, site-file list, activator pin, pack self-test, activator `--self-test`, browser QA). Job `publish` runs only after `validate`, and only on a push to `main`, in a concurrency group that does not cancel an in-progress publish. It packs `index.html`, `index.json`, `llms.txt`, `src`, `ideas`, `skills`, and `assets` into a tarball and asks the root activator on VPS2 to swap the site. Do not rsync a release from a session. SSH is break-glass only; the one-time server setup and the rollback commands are `deploy/SERVER-SETUP.md`.
+
+Production is still Caddy serving `/var/www/ideasos.io/current`. The activator writes `releases/<UTC timestamp>-<full sha>` (directories `755`, files `644`, owner `www-data`), records the sha in `.deploy-sha`, and points `current` at that relative path. A local Caddy check (`curl --resolve` to `127.0.0.1`) has to return the new `index.html` and `index.json` or the previous symlink is restored. Releases that predate Actions are full-sha directories and stay valid symlink targets. The activator keeps the five newest directories plus `current` and the previous target. It does not edit Caddy.

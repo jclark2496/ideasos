@@ -1,0 +1,74 @@
+name: Deploy
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Catalogue and site contract
+        run: |
+          python3 scripts/build_skills.py
+          python3 scripts/validate.py
+
+      - name: Site files
+        run: bash deploy/static-sanity.sh
+
+      - name: Activator pin
+        run: |
+          (cd deploy/server && sha256sum -c ideasos-activate.sha256)
+          pin=$(awk 'NR==1 { print $1 }' deploy/server/ideasos-activate.sha256)
+          grep -F -q "$pin" deploy/SERVER-SETUP.md
+          if grep -E 'systemctl|/etc/caddy' deploy/server/ideasos-activate; then
+            echo "activator must not touch the web server configuration" >&2
+            exit 1
+          fi
+
+      - name: Publish pack self-test
+        run: bash deploy/publish-from-ci.sh self-test
+
+      - name: Activator self-test
+        run: sudo -n bash -s -- --self-test < deploy/server/ideasos-activate
+
+      - name: Install Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget ca-certificates
+          wget -q -O /tmp/chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo apt-get install -y /tmp/chrome.deb
+
+      - name: Browser QA
+        run: |
+          python3 -m venv "$RUNNER_TEMP/qa-venv"
+          "$RUNNER_TEMP/qa-venv/bin/pip" install websocket-client
+          CHROME=/usr/bin/google-chrome-stable "$RUNNER_TEMP/qa-venv/bin/python" scripts/qa.py
+
+  publish:
+    name: publish
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ideasos-deploy
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Publish the site
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_SSH_KNOWN_HOSTS: ${{ secrets.VPS_SSH_KNOWN_HOSTS }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT }}
+        run: bash deploy/publish-from-ci.sh
