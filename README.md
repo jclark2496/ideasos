@@ -29,6 +29,10 @@ python3 scripts/validate.py           # must print: validation ok
 python3 scripts/qa.py                 # headless Chrome, three viewports
 ```
 
+## Deploy
+
+ideasos.io updates only when a commit is merged to `main`. GitHub Actions runs the `validate` check, then `publish` packs the site and the server activator swaps `current`. The manual rsync path is retired. One-time server setup and break-glass rollback are in `deploy/SERVER-SETUP.md`.
+
 ## Adding an idea
 
 1. Write `ideas/<slug>.md` with front matter (`title`, `kind`, `summary`, `by: ideasos`, `time`, `level`, `verified`, `parts`, `pdf`, optionally `repo`).
